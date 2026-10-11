@@ -1,6 +1,6 @@
-# PhySAFT Esper
+# PhySAFT Thermo
 
-PhySAFT Esper predicts selected pure-component PC-SAFT properties from a SMILES string and a temperature grid: vapor pressure, saturated liquid and vapor densities, heat of vaporization, and critical properties. Five neural networks trained on quantities derived from the published Esper PCP-SAFT parameter data predict Gchg/RT. Each network has its own epsilon(T) fit and property calculation; results are summarized across models.
+PhySAFT Thermo predicts selected pure-component PC-SAFT properties from a SMILES string and a temperature grid: vapor pressure, saturated liquid and vapor densities, heat of vaporization, and critical properties. Five neural networks trained on quantities derived from published PCP-SAFT parameter data predict Gchg/RT. Each network has its own epsilon(T) fit and property calculation; results are summarized across models.
 
 ```text
 SMILES -> 100-conformer RDKit geometry -> SMI-TED-Light embedding
@@ -19,13 +19,13 @@ Use Python 3.11. The pinned SMI-TED-Light assets are downloaded separately (appr
 
 ```bash
 conda env create -f environment.yml
-conda activate physaft-esper-pvap
+conda activate physaft-thermo
 python tools/install_fast_transformers.py
 python -m pip install --no-deps -e .
-physaft-esper-pvap download-smi-ted
-physaft-esper-pvap predict --smiles 'CCO' --t-min 280 --t-max 320 --n-points 5 --output example_output
-physaft-esper-pvap predict --smiles 'CCO' --t-min 280 --t-max 320 --n-points 5 --properties heat_of_vaporization --output heat_output
-physaft-esper-pvap predict --smiles 'CCO' --t-min 280 --t-max 320 --n-points 5 --properties critical_properties --output critical_output
+physaft-thermo download-smi-ted
+physaft-thermo predict --smiles 'CCO' --t-min 280 --t-max 320 --n-points 5 --output example_output
+physaft-thermo predict --smiles 'CCO' --t-min 280 --t-max 320 --n-points 5 --properties heat_of_vaporization --output heat_output
+physaft-thermo predict --smiles 'CCO' --t-min 280 --t-max 320 --n-points 5 --properties critical_properties --output critical_output
 ```
 
 On macOS, install `llvm` and `libomp` with Homebrew before building `pytorch-fast-transformers` if they are absent. The checked Linux image is x86-64; other compatible Linux distributions may use the Conda recipe or Docker. Linux ARM64 is not part of the validated platform matrix. CPU-only, headless Linux hosts are supported.
@@ -39,8 +39,8 @@ Use the **x86-64 build of Python 3.11** on both hosts. Windows 11 ARM64 runs thi
 .\.venv\Scripts\Activate.ps1
 python tools\windows_preflight.py
 python tools\install_windows.py
-physaft-esper-pvap download-smi-ted
-physaft-esper-pvap --help
+physaft-thermo download-smi-ted
+physaft-thermo --help
 ```
 
 The preflight must report `sysconfig_platform: win-amd64`. On an ARM64 computer, use the full x64 Python path when creating the environment.
@@ -48,7 +48,7 @@ The preflight must report `sysconfig_platform: win-amd64`. On an ARM64 computer,
 ## Python API and batch CLI
 
 ```python
-from physaft_esper_pvap import predict, predict_range
+from physaft_thermo import predict, predict_range
 
 result = predict_range("CCO", 280.0, 320.0, n_points=5)
 result.write("example_output")
@@ -58,7 +58,7 @@ critical = predict_range("CCO", 280.0, 320.0, n_points=5, properties=["critical_
 ```
 
 ```bash
-physaft-esper-pvap batch --input examples/batch_input.csv --output batch_output --strict
+physaft-thermo batch --input examples/batch_input.csv --output batch_output --strict
 ```
 
 Use `--properties` with one or more comma-separated choices: `vapor_pressure`, `liquid_density`, `vapor_density`, `heat_of_vaporization`, and `critical_properties`. With no selection, the three saturation properties are calculated. Heat of vaporization internally solves saturation states first. Critical properties are calculated over a fixed model search domain; the supplied temperature grid is recorded but does not bound that search.
@@ -78,22 +78,22 @@ The model and inference methods are described in [METHODS](docs/METHODS.md), [MO
 ```bash
 python -m pytest -q
 python tools/release_audit.py .
-physaft-esper-pvap --help
+physaft-thermo --help
 ```
 
-The full integration check additionally requires the separately downloaded SMI-TED-Light assets. A Linux CPU Docker image can be built with `docker build -t physaft-esper-pvap .`.
+The full integration check additionally requires the separately downloaded SMI-TED-Light assets. A Linux CPU Docker image can be built with `docker build -t physaft-thermo .`.
 
 ## Publish to GitHub
 
-This directory is an independent Git repository on branch `main`. To publish it to the existing `ES0613/physaft-thermo` repository:
+This directory is an independent Git repository on branch `main`, with `origin` already pointing to `ES0613/physaft-thermo`. To publish an update:
 
-1. In a terminal, enter this directory and run `python tools/release_audit.py .` and `git status --short`. If Git lacks your author identity, set `git config user.name "Your Name"` and `git config user.email "your GitHub email"` for this repository.
-2. Run `git add -A`, then `git commit -m "Release PhySAFT Esper property inference"`.
-3. Run `git remote add origin https://github.com/ES0613/physaft-thermo.git`, followed by `git push -u origin main`. Use your normal GitHub authentication flow if prompted.
-4. Open the repository page and check that the five safetensors weights, `README.md`, and workflow files appear. If the release should be public, change the repository visibility from Private to Public in GitHub Settings. The collaborator repository is separate and is not changed by these commands.
+1. In a terminal, enter this directory and run `python tools/release_audit.py .` and `git status --short`.
+2. Run `git add -A`, then `git commit -m "Rename project to PhySAFT Thermo"`.
+3. Run `git push origin main`. Use your normal GitHub authentication flow if prompted.
+4. Open the repository page and check the README, five safetensors weights, and workflow results. If the release should be public, change the repository visibility from Private to Public in GitHub Settings. The collaborator repository is separate and is not changed by these commands.
 
 ## Scope and citation
 
-This release addresses pure-component research use. It does not establish accuracy for mixtures, associating fluids, ionic systems, safety design, or temperatures outside the relevant training domain. The source data were derived from the Esper PCP-SAFT publication; see [DATA_AVAILABILITY](docs/DATA_AVAILABILITY.md) for the DOI. Cite this software using `CITATION.cff` and the source publication.
+This release addresses pure-component research use. It does not establish accuracy for mixtures, associating fluids, ionic systems, safety design, or temperatures outside the relevant training domain. The source parameters come from the publication identified in [DATA_AVAILABILITY](docs/DATA_AVAILABILITY.md). Cite this software using `CITATION.cff` and the source publication.
 
 Copyright (c) 2026 Yi-Cheng Shen and Shiang-Tai Lin. Code and converted inference assets are released under BSD-3-Clause. SMI-TED-Light is fetched from IBM Research and is not redistributed here.

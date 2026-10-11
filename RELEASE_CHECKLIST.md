@@ -8,4 +8,4 @@
 - [ ] Run `python tools/release_audit.py .` and confirm it passes.
 - [ ] Confirm the model manifest and five weight hashes remain unchanged.
 - [ ] Confirm BSD-3-Clause applies to the code and converted weights, and review third-party notices.
-- [ ] Create the GitHub repository, add its URL to the project description, then commit and push this directory.
+- [ ] Commit and push the checked contents to the existing `ES0613/physaft-thermo` repository.

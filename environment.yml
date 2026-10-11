@@ -1,6 +1,6 @@
 # Windows 11 ARM64 hosts must create this environment with x64 Miniconda/Python.
 # Native win-arm64 Python is not supported by the pinned binary dependency stack.
-name: physaft-esper-pvap
+name: physaft-thermo
 channels:
   - conda-forge
   - pytorch

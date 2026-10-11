@@ -68,6 +68,6 @@ jobs:
         run: python tools/release_audit.py .
       - name: CLI smoke test
         run: |
-          physaft-esper-pvap --help
-          physaft-esper-pvap predict --help
-          physaft-esper-pvap batch --help
+          physaft-thermo --help
+          physaft-thermo predict --help
+          physaft-thermo batch --help

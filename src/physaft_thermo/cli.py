@@ -117,7 +117,7 @@ def _run_batch(args: argparse.Namespace) -> int:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="physaft-esper-pvap",
+        prog="physaft-thermo",
         description=f"{FRAMEWORK_NAME} five-model PC-SAFT property inference.",
     )
     subparsers = parser.add_subparsers(dest="command", required=True)

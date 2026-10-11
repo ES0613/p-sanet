@@ -5,11 +5,11 @@ import math
 import numpy as np
 import pytest
 
-from physaft_esper_pvap.critical_properties import (
+from physaft_thermo.critical_properties import (
     TEMPERATURE_MAX_K, TEMPERATURE_MIN_K, critical_physical_state,
     solve_critical_properties, solve_reduced_critical_point,
 )
-from physaft_esper_pvap.pcsaft import gchg_over_rt
+from physaft_thermo.pcsaft import gchg_over_rt
 
 
 def test_reduced_critical_reference_and_unit_conversions():

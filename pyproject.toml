@@ -3,9 +3,9 @@ requires = ["setuptools==75.8.0", "wheel==0.45.1"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "physaft-esper-pvap"
-version = "1.0.0"
-description = "Esper-derived five-model PC-SAFT pure-component property inference"
+name = "physaft-thermo"
+version = "1.1.0"
+description = "Five-model PC-SAFT pure-component property inference"
 readme = "README.md"
 requires-python = ">=3.11,<3.12"
 license = {file = "LICENSE"}
@@ -36,7 +36,7 @@ smi-ted = ["pytorch-fast-transformers==0.4.0; sys_platform != 'win32'"]
 test = ["pytest==8.3.5", "pytest-cov==6.0.0"]
 
 [project.scripts]
-physaft-esper-pvap = "physaft_esper_pvap.cli:main"
+physaft-thermo = "physaft_thermo.cli:main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
@@ -45,7 +45,7 @@ package-dir = {"" = "src"}
 where = ["src"]
 
 [tool.setuptools.package-data]
-physaft_esper_pvap = ["models/*.json", "models/*.safetensors"]
+physaft_thermo = ["models/*.json", "models/*.safetensors"]
 
 [tool.pytest.ini_options]
 addopts = "-ra"

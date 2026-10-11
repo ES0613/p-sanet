@@ -29,7 +29,7 @@ def default_smi_ted_dir() -> Path:
     configured = os.environ.get("SMI_TED_HOME")
     if configured:
         return Path(configured).expanduser().resolve()
-    return Path.home() / ".cache" / "physaft_esper_pvap" / "smi_ted_light"
+    return Path.home() / ".cache" / "physaft_thermo" / "smi_ted_light"
 
 
 def verify_smi_ted(directory: Path) -> dict[str, str]:
@@ -40,7 +40,7 @@ def verify_smi_ted(directory: Path) -> dict[str, str]:
         if not path.is_file():
             raise ModelAssetError(
                 f"Missing SMI-TED asset {filename!r} in {directory}. "
-                "Run 'physaft-esper-pvap download-smi-ted'."
+                "Run 'physaft-thermo download-smi-ted'."
             )
         observed = sha256_file(path)
         if observed != expected:
@@ -89,7 +89,7 @@ def download_smi_ted(destination: Path | None = None, source_dir: Path | None = 
 def load_encoder(directory: Path | None = None) -> Any:
     directory = Path(directory or default_smi_ted_dir()).expanduser().resolve()
     verify_smi_ted(directory)
-    spec = importlib.util.spec_from_file_location("physaft_esper_pvap_smi_ted_load", directory / "load.py")
+    spec = importlib.util.spec_from_file_location("physaft_thermo_smi_ted_load", directory / "load.py")
     if spec is None or spec.loader is None:
         raise ModelAssetError(f"Could not import SMI-TED loader from {directory}.")
     module = importlib.util.module_from_spec(spec)

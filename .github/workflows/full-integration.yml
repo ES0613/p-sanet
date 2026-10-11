@@ -72,10 +72,10 @@ jobs:
           path: ${{ env.SMI_TED_HOME }}
           key: smi-ted-light-d823faeb-${{ matrix.runtime }}
       - name: Download and verify SMI-TED-Light
-        run: physaft-esper-pvap download-smi-ted
+        run: physaft-thermo download-smi-ted
       - name: End-to-end test
         run: pytest -m integration
       - name: Prediction CLI
-        run: physaft-esper-pvap predict --smiles CCO --t-min 280 --t-max 320 --n-points 5 --output standalone_check --strict
+        run: physaft-thermo predict --smiles CCO --t-min 280 --t-max 320 --n-points 5 --output standalone_check --strict
       - name: Batch CLI
-        run: physaft-esper-pvap batch --input examples/batch_input.csv --output batch_check --strict
+        run: physaft-thermo batch --input examples/batch_input.csv --output batch_check --strict

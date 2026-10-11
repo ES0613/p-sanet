@@ -11,10 +11,10 @@ Python 3.11.15; RDKit 2025.09.6; PyTorch 2.5.1; NumPy 2.4.2; SciPy 1.17.1; panda
 ```bash
 python -m pytest -q
 python tools/release_audit.py .
-physaft-esper-pvap --help
+physaft-thermo --help
 ```
 
-The full integration test needs `SMI_TED_HOME` pointing to verified SMI-TED-Light assets. Install them with `physaft-esper-pvap download-smi-ted`, then run `python -m pytest -q -m integration`. Fixed-input safetensors predictions were checked against the source neural-network state dictionaries with maximum absolute difference at most `1e-6` before publication. The package checks public weight hashes on load.
+The full integration test needs `SMI_TED_HOME` pointing to verified SMI-TED-Light assets. Install them with `physaft-thermo download-smi-ted`, then run `python -m pytest -q -m integration`. Fixed-input safetensors predictions were checked against the source neural-network state dictionaries with maximum absolute difference at most `1e-6` before publication. The package checks public weight hashes on load.
 
 The public CI checks Ubuntu x86-64, macOS ARM64, Windows x86-64, and Windows 11 ARM64 with x64 Python. The separately triggered integration workflow downloads SMI-TED-Light and runs the full inference path. The Linux Dockerfile targets x86-64 CPU hosts. Other Linux distributions require an equivalent runtime or Docker. Linux ARM64 has not been validated.
 

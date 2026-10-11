@@ -1,6 +1,6 @@
 """Minimal Python API example. Download SMI-TED-Light before running."""
 
-from physaft_esper_pvap import predict_range
+from physaft_thermo import predict_range
 
 result = predict_range("CCO", 280.0, 320.0, n_points=5)
 result.write("example_output")

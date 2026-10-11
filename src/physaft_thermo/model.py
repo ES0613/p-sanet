@@ -107,7 +107,7 @@ class LoadedModel:
 
 
 def model_directory() -> Path:
-    return Path(str(files("physaft_esper_pvap").joinpath("models")))
+    return Path(str(files("physaft_thermo").joinpath("models")))
 
 
 def load_manifest() -> dict[str, object]:

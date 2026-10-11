@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 
-from physaft_esper_pvap.exceptions import InputValidationError
-from physaft_esper_pvap.smiles import canonicalize_smiles, validate_temperatures
+from physaft_thermo.exceptions import InputValidationError
+from physaft_thermo.smiles import canonicalize_smiles, validate_temperatures
 
 
 def test_canonicalization_keeps_geometry_stereo_but_not_embedding_stereo() -> None:

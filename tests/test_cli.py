@@ -1,6 +1,6 @@
 import pytest
 
-from physaft_esper_pvap.cli import main
+from physaft_thermo.cli import main
 
 
 def test_cli_help(capsys) -> None:
@@ -8,7 +8,7 @@ def test_cli_help(capsys) -> None:
         main(["--help"])
     assert exc.value.code == 0
     output = capsys.readouterr().out
-    assert "PhySAFT Esper" in output
+    assert "PhySAFT Thermo" in output
     assert "PC-SAFT property inference" in output
     assert "calibrate" not in output
 

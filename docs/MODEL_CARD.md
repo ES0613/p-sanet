@@ -1,4 +1,4 @@
-# PhySAFT Esper model card
+# PhySAFT Thermo model card
 
 ## Intended use
 
@@ -6,7 +6,7 @@ Five converted neural-network weights predict Gchg/RT for research-oriented pure
 
 ## Inputs and assets
 
-Each model uses a 768-dimensional SMI-TED-Light embedding, `[V, A, V/A]` geometry descriptors, and `[T, 1/T]` features. The package contains five safetensors weights and JSON scalers/architecture metadata. The source data are quantities derived from published Esper PCP-SAFT parameters. The source checkpoint files, training records, and local paths are not bundled. SMI-TED-Light is downloaded separately from a pinned IBM Research revision.
+Each model uses a 768-dimensional SMI-TED-Light embedding, `[V, A, V/A]` geometry descriptors, and `[T, 1/T]` features. The package contains five safetensors weights and JSON scalers/architecture metadata. The source data are quantities derived from published PCP-SAFT parameters; see [DATA_AVAILABILITY](DATA_AVAILABILITY.md) for attribution. The source checkpoint files, training records, and local paths are not bundled. SMI-TED-Light is downloaded separately from a pinned IBM Research revision.
 
 ## Limitations
 

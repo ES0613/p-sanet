@@ -1,7 +1,7 @@
 import numpy as np
 
-from physaft_esper_pvap.epsilon import fit_epsilon_curve
-from physaft_esper_pvap.pcsaft import gchg_over_rt
+from physaft_thermo.epsilon import fit_epsilon_curve
+from physaft_thermo.pcsaft import gchg_over_rt
 
 
 def test_epsilon_fit_stays_inside_bounds_and_reconstructs_curve() -> None:
