@@ -1,0 +1,6 @@
+# Keep byte-for-byte text assets identical across Linux, macOS, and Windows.
+* text=auto eol=lf
+
+# Model weights and checkpoints must never undergo text normalization.
+*.safetensors binary
+*.pt binary

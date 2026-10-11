@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "model_id": "model_5",
+  "model_type": "ChargeFusionNet",
+  "architecture": {
+    "embedding_dim": 768,
+    "smiles_hidden_dim": 512,
+    "smiles_proj_dim": 384,
+    "geometry_hidden_dim": 64,
+    "geometry_proj_dim": 32,
+    "temperature_hidden_dim": 64,
+    "temperature_proj_dim": 32,
+    "fusion_hidden_dim": 512,
+    "fusion_bottleneck_dim": 256,
+    "dropout": 0.1
+  },
+  "geometry_scaler": {
+    "mean": [
+      119.76851654052734,
+      193.65313720703125,
+      0.6123509407043457
+    ],
+    "std": [
+      70.88849639892578,
+      111.94776916503906,
+      0.03221830725669861
+    ],
+    "feature_names": [
+      "vdw_volume_A3",
+      "vdw_surface_area_A2",
+      "vdw_volume_area_ratio_A"
+    ]
+  },
+  "temperature_scaler": {
+    "mean": [
+      411.6708984375,
+      0.0029120042454451323
+    ],
+    "std": [
+      159.01318359375,
+      0.0015490783844143152
+    ],
+    "feature_names": [
+      "temperature_K",
+      "inv_temperature_K"
+    ]
+  },
+  "target_scaler": {
+    "mean": -34.99663162231445,
+    "std": 18.530197143554688,
+    "target_name": "gchg_rt"
+  },
+  "safetensors_sha256": "4a4640cfeaaaa9849b979dc679f62e2859515c21a5090d50edd538cd29444b80"
+}

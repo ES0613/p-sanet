@@ -1,0 +1,21 @@
+cff-version: 1.2.0
+message: "If you use this software, cite this repository and the Esper source publication."
+title: "PhySAFT Esper: pure-component PC-SAFT property inference"
+type: software
+version: 1.0.0
+authors:
+  - family-names: "Shen"
+    given-names: "Yi-Cheng"
+    affiliation: "Department of Chemical Engineering, National Taiwan University, Taipei 106319, Taiwan"
+  - family-names: "Lin"
+    given-names: "Shiang-Tai"
+    email: "stlin@ntu.edu.tw"
+    affiliation: "Department of Chemical Engineering, National Taiwan University, Taipei 106319, Taiwan"
+license: BSD-3-Clause
+keywords:
+  - PhySAFT
+  - PC-SAFT
+  - vapor pressure
+  - heat of vaporization
+  - critical properties
+  - machine learning

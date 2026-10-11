@@ -1,0 +1,53 @@
+[build-system]
+requires = ["setuptools==75.8.0", "wheel==0.45.1"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "physaft-esper-pvap"
+version = "1.0.0"
+description = "Esper-derived five-model PC-SAFT pure-component property inference"
+readme = "README.md"
+requires-python = ">=3.11,<3.12"
+license = {file = "LICENSE"}
+authors = [
+  {name = "Yi-Cheng Shen"},
+  {name = "Shiang-Tai Lin", email = "stlin@ntu.edu.tw"},
+]
+keywords = ["PhySAFT", "PC-SAFT", "vapor pressure", "heat of vaporization", "critical properties", "machine learning", "cheminformatics"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: BSD License",
+  "Operating System :: MacOS",
+  "Operating System :: Microsoft :: Windows",
+  "Operating System :: POSIX :: Linux",
+  "Programming Language :: Python :: 3.11",
+  "Topic :: Scientific/Engineering :: Chemistry",
+]
+dependencies = [
+  "numpy==2.4.2", "pandas==3.0.1", "rdkit==2025.9.6",
+  "regex==2026.2.28", "safetensors==0.7.0", "scipy==1.17.1",
+  "tokenizers==0.20.3", "torch==2.5.1", "tqdm==4.67.3",
+  "transformers==4.46.3",
+]
+
+[project.optional-dependencies]
+smi-ted = ["pytorch-fast-transformers==0.4.0; sys_platform != 'win32'"]
+test = ["pytest==8.3.5", "pytest-cov==6.0.0"]
+
+[project.scripts]
+physaft-esper-pvap = "physaft_esper_pvap.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+physaft_esper_pvap = ["models/*.json", "models/*.safetensors"]
+
+[tool.pytest.ini_options]
+addopts = "-ra"
+testpaths = ["tests"]
+markers = ["integration: requires the separately downloaded SMI-TED-Light model"]

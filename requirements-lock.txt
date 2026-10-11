@@ -1,0 +1,14 @@
+# On Windows 11 ARM64, install these wheels with x64 Python 3.11 under
+# Windows x64 emulation. Do not use native win-arm64 Python.
+numpy==2.4.2
+pandas==3.0.1
+rdkit==2025.9.6
+regex==2026.2.28
+safetensors==0.7.0
+scipy==1.17.1
+setuptools==75.8.0
+tokenizers==0.20.3
+torch==2.5.1
+tqdm==4.67.3
+transformers==4.46.3
+wheel==0.45.1

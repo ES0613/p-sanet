@@ -1,0 +1,11 @@
+.git
+.github
+.pytest_cache
+__pycache__
+*.py[cod]
+*.ipynb_checkpoints
+example_output
+batch_output
+dist
+build
+*.egg-info

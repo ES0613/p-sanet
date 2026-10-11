@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "models": [
+    {
+      "model_id": "model_1",
+      "safetensors_sha256": "70b4b50bbe6c08be2a75aa24112895d2d5740dfd8b3dc304484de30d7cce83b2"
+    },
+    {
+      "model_id": "model_2",
+      "safetensors_sha256": "326f65fcc6d1a2210e70ec7952b986e816fbff8fa356ee984a41a4a21edf33bb"
+    },
+    {
+      "model_id": "model_3",
+      "safetensors_sha256": "c3b8725bbeff151af956313aef21cad9464c7f049e41674913ca9d3b69f3aef6"
+    },
+    {
+      "model_id": "model_4",
+      "safetensors_sha256": "e6c16db20763dc411f669382f4ff0294dc9ea2f2658ec1e48573dcf1f31a0e49"
+    },
+    {
+      "model_id": "model_5",
+      "safetensors_sha256": "4a4640cfeaaaa9849b979dc679f62e2859515c21a5090d50edd538cd29444b80"
+    }
+  ]
+}

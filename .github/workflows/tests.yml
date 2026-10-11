@@ -1,0 +1,73 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  unit-and-integration:
+    name: unit-and-integration (${{ matrix.runtime }}, 3.11)
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            runtime: ubuntu-x64
+            runner_architecture: X64
+            python_architecture: x64
+          - os: macos-latest
+            runtime: macos-arm64
+            runner_architecture: ARM64
+            python_architecture: arm64
+          - os: windows-latest
+            runtime: windows-x64
+            runner_architecture: X64
+            python_architecture: x64
+          - os: windows-11-arm
+            runtime: windows-arm64-host-x64-python
+            runner_architecture: ARM64
+            python_architecture: x64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          architecture: ${{ matrix.python_architecture }}
+          cache: pip
+      - name: Verify runner architecture
+        env:
+          EXPECTED_RUNNER_ARCH: ${{ matrix.runner_architecture }}
+          RUNNER_ARCH: ${{ runner.arch }}
+        run: python -c "import os; expected=os.environ['EXPECTED_RUNNER_ARCH'].lower(); observed=os.environ['RUNNER_ARCH'].lower(); print(f'runner architecture={observed}, expected={expected}'); assert observed == expected"
+      - name: Install exact dependencies (Ubuntu/macOS)
+        if: runner.os != 'Windows'
+        run: |
+          python -m pip install --upgrade pip==25.0.1
+          python -m pip install -r requirements-lock.txt
+          python -m pip install --no-deps -e .
+          python -m pip install pytest==8.3.5
+      - name: Install exact dependencies (Windows x64 process)
+        if: runner.os == 'Windows'
+        run: |
+          python tools/install_windows.py
+          python -m pip install pytest==8.3.5
+      - name: Validate SMI-TED compiler dependency
+        if: runner.os == 'Linux'
+        run: python -m pip install --no-build-isolation -r requirements-fast-transformers.txt
+      - name: Validate Windows PyTorch-NumPy bridge
+        if: runner.os == 'Windows'
+        run: python -c "import numpy as np, torch; values=np.arange(4, dtype=np.float32); assert np.array_equal(torch.from_numpy(values).numpy(), values)"
+      - name: Validate supported Windows Python process
+        if: runner.os == 'Windows'
+        run: python tools/windows_preflight.py
+      - name: Unit and lightweight integration tests
+        run: pytest -m "not integration"
+      - name: Release-content audit
+        run: python tools/release_audit.py .
+      - name: CLI smoke test
+        run: |
+          physaft-esper-pvap --help
+          physaft-esper-pvap predict --help
+          physaft-esper-pvap batch --help

@@ -1,0 +1,81 @@
+name: full SMI-TED integration
+
+on:
+  workflow_dispatch:
+
+jobs:
+  end-to-end:
+    name: end-to-end (${{ matrix.runtime }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            runtime: ubuntu-x64
+            runner_architecture: X64
+            python_architecture: x64
+          - os: macos-latest
+            runtime: macos-arm64
+            runner_architecture: ARM64
+            python_architecture: arm64
+          - os: windows-latest
+            runtime: windows-x64
+            runner_architecture: X64
+            python_architecture: x64
+          - os: windows-11-arm
+            runtime: windows-arm64-host-x64-python
+            runner_architecture: ARM64
+            python_architecture: x64
+    runs-on: ${{ matrix.os }}
+    env:
+      SMI_TED_HOME: ${{ github.workspace }}/.cache/smi_ted_light
+      OMP_NUM_THREADS: "1"
+      OPENBLAS_NUM_THREADS: "1"
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          architecture: ${{ matrix.python_architecture }}
+          cache: pip
+      - name: Verify runner architecture
+        env:
+          EXPECTED_RUNNER_ARCH: ${{ matrix.runner_architecture }}
+          RUNNER_ARCH: ${{ runner.arch }}
+        run: python -c "import os; expected=os.environ['EXPECTED_RUNNER_ARCH'].lower(); observed=os.environ['RUNNER_ARCH'].lower(); print(f'runner architecture={observed}, expected={expected}'); assert observed == expected"
+      - name: Install macOS compiler dependencies
+        if: runner.os == 'macOS'
+        run: brew install llvm libomp
+      - name: Install exact dependencies (Ubuntu/macOS)
+        if: runner.os != 'Windows'
+        run: |
+          python -m pip install --upgrade pip==25.0.1
+          python -m pip install -r requirements-lock.txt
+          if [ "$(uname)" = Darwin ]; then
+            export CC="$(brew --prefix llvm)/bin/clang"
+            export CXX="$(brew --prefix llvm)/bin/clang++"
+          fi
+          python tools/install_fast_transformers.py
+          python -m pip install --no-deps -e .
+          python -m pip install pytest==8.3.5
+      - name: Install exact dependencies (Windows x64 process)
+        if: runner.os == 'Windows'
+        run: |
+          python tools/install_windows.py
+          python -m pip install pytest==8.3.5
+      - name: Validate supported Windows Python process
+        if: runner.os == 'Windows'
+        run: python tools/windows_preflight.py
+      - name: Cache pinned SMI-TED-Light
+        uses: actions/cache@v5
+        with:
+          path: ${{ env.SMI_TED_HOME }}
+          key: smi-ted-light-d823faeb-${{ matrix.runtime }}
+      - name: Download and verify SMI-TED-Light
+        run: physaft-esper-pvap download-smi-ted
+      - name: End-to-end test
+        run: pytest -m integration
+      - name: Prediction CLI
+        run: physaft-esper-pvap predict --smiles CCO --t-min 280 --t-max 320 --n-points 5 --output standalone_check --strict
+      - name: Batch CLI
+        run: physaft-esper-pvap batch --input examples/batch_input.csv --output batch_check --strict
