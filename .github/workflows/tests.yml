@@ -56,6 +56,9 @@ jobs:
       - name: Validate SMI-TED compiler dependency
         if: runner.os == 'Linux'
         run: python -m pip install --no-build-isolation -r requirements-fast-transformers.txt
+      - name: Validate macOS SMI-TED compatibility dependency
+        if: runner.os == 'macOS'
+        run: python tools/install_fast_transformers.py
       - name: Validate Windows PyTorch-NumPy bridge
         if: runner.os == 'Windows'
         run: python -c "import numpy as np, torch; values=np.arange(4, dtype=np.float32); assert np.array_equal(torch.from_numpy(values).numpy(), values)"

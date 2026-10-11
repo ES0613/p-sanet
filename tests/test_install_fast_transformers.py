@@ -13,7 +13,7 @@ MODULE = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(MODULE)
 
 
-def test_windows_patch_disables_native_extensions_and_unsafe_attention_imports(tmp_path):
+def test_python_only_patch_disables_native_extensions_and_unsafe_attention_imports(tmp_path):
     source = tmp_path / "pytorch-fast-transformers-0.4.0"
     attention = source / "fast_transformers" / "attention"
     builders = source / "fast_transformers" / "builders"
@@ -32,12 +32,12 @@ def test_windows_patch_disables_native_extensions_and_unsafe_attention_imports(t
         encoding="utf-8",
     )
 
-    MODULE.patch_windows_source(source)
+    MODULE.patch_python_only_source(source)
 
     setup_text = (source / "setup.py").read_text(encoding="utf-8")
     attention_text = (attention / "__init__.py").read_text(encoding="utf-8")
     builders_text = (builders / "__init__.py").read_text(encoding="utf-8")
-    assert MODULE.WINDOWS_EXTENSION_SETTING in setup_text
+    assert MODULE.PYTHON_ONLY_EXTENSION_SETTING in setup_text
     assert MODULE.UPSTREAM_EXTENSION_SETTING not in setup_text
     assert "LinearAttention" in attention_text
     assert "ClusteredAttention" not in attention_text
@@ -45,6 +45,14 @@ def test_windows_patch_disables_native_extensions_and_unsafe_attention_imports(t
     assert "LinearAttention" in builders_text
     assert "ClusteredAttention" not in builders_text
     assert "CausalLinearAttention" not in builders_text
+
+
+@pytest.mark.parametrize(
+    ("platform", "expected"),
+    [("darwin", True), ("win32", True), ("linux", False)],
+)
+def test_python_only_mode_by_platform(platform, expected):
+    assert MODULE.use_python_only(platform) is expected
 
 
 def test_archive_hash_rejects_unverified_content(tmp_path):

@@ -1,6 +1,7 @@
 # This legacy source distribution imports PyTorch while its wheel is built.
 # Install requirements-lock.txt first, then install this file with:
 # python -m pip install --no-build-isolation -r requirements-fast-transformers.txt
-# This direct build is for Linux/macOS. Use tools/install_fast_transformers.py
-# there; on Windows use the architecture-checked tools/install_windows.py.
-pytorch-fast-transformers==0.4.0; sys_platform != "win32"
+# This direct native build is for Linux only. On macOS use
+# tools/install_fast_transformers.py; on Windows use the architecture-checked
+# tools/install_windows.py. Both use the verified pure-Python subset.
+pytorch-fast-transformers==0.4.0; sys_platform == "linux"

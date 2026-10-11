@@ -4,7 +4,7 @@
 
 Python 3.11.15; RDKit 2025.09.6; PyTorch 2.5.1; NumPy 2.4.2; SciPy 1.17.1; pandas 3.0.1; transformers 4.46.3; tokenizers 0.20.3; safetensors 0.7.0; pytorch-fast-transformers 0.4.0. The direct runtime packages are pinned in `environment.yml` and `requirements-lock.txt`. The SMI-TED-Light loader, vocabulary, and checkpoint are pinned by revision and SHA-256 in the package constants.
 
-`pytorch-fast-transformers` must be installed after PyTorch because its source build imports PyTorch. Linux and macOS build the original native extension. Windows installs a source-verified, pure-Python compatibility build for the modules required by the pinned SMI-TED-Light loader. Windows 11 ARM64 hosts run an x64 Python process and x64 wheels through Windows emulation; native ARM64 Python is not supported.
+`pytorch-fast-transformers` must be installed after PyTorch because its source build imports PyTorch. Linux builds the original native extension. macOS and Windows install a source-verified, pure-Python compatibility build for the modules required by the pinned SMI-TED-Light loader. This avoids a macOS Clang/libc++ conflict with the pinned PyTorch headers. Windows 11 ARM64 hosts run an x64 Python process and x64 wheels through Windows emulation; native ARM64 Python is not supported.
 
 ## Checks
 

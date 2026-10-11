@@ -3,9 +3,10 @@
 
 PyPI publishes version 0.4.0 only as a source distribution.  The upstream
 build uses Unix compiler flags and cannot be built unchanged with Windows
-MSVC.  The pinned SMI-TED-Light loader uses only pure-Python unmasked linear
-attention, so the Windows path installs the verified upstream Python sources
-without the unused native extensions.
+MSVC.  On macOS, newer Clang/libc++ versions also conflict with the pinned
+PyTorch headers. The pinned SMI-TED-Light loader uses only pure-Python
+unmasked linear attention, so macOS and Windows install the verified upstream
+Python sources without the unused native extensions.
 """
 
 from __future__ import annotations
@@ -32,8 +33,8 @@ SOURCE_URL = (
 SOURCE_SHA256 = "d1826bc31b9dfbcd018998b897667e89fc6566bd3f8c424cda9f0943544f7e90"
 
 UPSTREAM_EXTENSION_SETTING = "        ext_modules=get_extensions(),"
-WINDOWS_EXTENSION_SETTING = "        ext_modules=[],"
-WINDOWS_ATTENTION_INIT = """\
+PYTHON_ONLY_EXTENSION_SETTING = "        ext_modules=[],"
+PYTHON_ONLY_ATTENTION_INIT = """\
 #
 # Copyright (c) 2020 Idiap Research Institute, http://www.idiap.ch/
 # Written by Angelos Katharopoulos <angelos.katharopoulos@idiap.ch>,
@@ -53,7 +54,7 @@ from .linear_attention import LinearAttention
 
 __all__ = [\"AttentionLayer\", \"FullAttention\", \"LinearAttention\"]
 """
-WINDOWS_BUILDERS_INIT = """\
+PYTHON_ONLY_BUILDERS_INIT = """\
 #
 # Copyright (c) 2020 Idiap Research Institute, http://www.idiap.ch/
 # Written by Angelos Katharopoulos <angelos.katharopoulos@idiap.ch>,
@@ -116,7 +117,7 @@ def _safe_extract(archive: Path, destination: Path) -> None:
         handle.extractall(destination)
 
 
-def patch_windows_source(source_root: Path) -> None:
+def patch_python_only_source(source_root: Path) -> None:
     """Restrict a verified upstream tree to SMI-TED's pure-Python path."""
     setup_path = source_root / "setup.py"
     setup_text = setup_path.read_text(encoding="utf-8")
@@ -126,30 +127,30 @@ def patch_windows_source(source_root: Path) -> None:
             "The verified upstream setup.py no longer has the expected extension setting."
         )
     setup_path.write_text(
-        setup_text.replace(UPSTREAM_EXTENSION_SETTING, WINDOWS_EXTENSION_SETTING),
+        setup_text.replace(UPSTREAM_EXTENSION_SETTING, PYTHON_ONLY_EXTENSION_SETTING),
         encoding="utf-8",
     )
 
     attention_init = source_root / "fast_transformers" / "attention" / "__init__.py"
     if not attention_init.is_file():
         raise RuntimeError("The verified upstream attention package is missing.")
-    attention_init.write_text(WINDOWS_ATTENTION_INIT, encoding="utf-8")
+    attention_init.write_text(PYTHON_ONLY_ATTENTION_INIT, encoding="utf-8")
 
     builders_init = source_root / "fast_transformers" / "builders" / "__init__.py"
     if not builders_init.is_file():
         raise RuntimeError("The verified upstream builders package is missing.")
-    builders_init.write_text(WINDOWS_BUILDERS_INIT, encoding="utf-8")
+    builders_init.write_text(PYTHON_ONLY_BUILDERS_INIT, encoding="utf-8")
 
 
-def prepare_source(archive: Path, destination: Path, windows_compat: bool) -> Path:
+def prepare_source(archive: Path, destination: Path, python_only: bool) -> Path:
     verify_archive(archive)
     destination.mkdir(parents=True, exist_ok=True)
     _safe_extract(archive, destination)
     source_root = destination / f"pytorch-fast-transformers-{VERSION}"
     if not source_root.is_dir():
         raise RuntimeError(f"Expected source directory was not extracted: {source_root}.")
-    if windows_compat:
-        patch_windows_source(source_root)
+    if python_only:
+        patch_python_only_source(source_root)
     return source_root
 
 
@@ -176,10 +177,14 @@ def _verify_installed_runtime() -> None:
     subprocess.run([sys.executable, "-c", code], check=True)
 
 
-def install(source_archive: Path | None = None, windows_compat: bool | None = None) -> None:
-    if windows_compat is None:
-        windows_compat = sys.platform == "win32"
-    if windows_compat and sys.platform == "win32":
+def use_python_only(platform: str) -> bool:
+    return platform in {"darwin", "win32"}
+
+
+def install(source_archive: Path | None = None, python_only: bool | None = None) -> None:
+    if python_only is None:
+        python_only = use_python_only(sys.platform)
+    if sys.platform == "win32":
         from windows_preflight import require_supported_windows_python
 
         require_supported_windows_python()
@@ -190,7 +195,7 @@ def install(source_archive: Path | None = None, windows_compat: bool | None = No
             _download_archive(archive)
         else:
             shutil.copy2(source_archive.expanduser().resolve(), archive)
-        source_root = prepare_source(archive, work / "source", windows_compat)
+        source_root = prepare_source(archive, work / "source", python_only)
         command = [
             sys.executable,
             "-m",
@@ -216,7 +221,7 @@ def main() -> int:
     )
     args = parser.parse_args()
     install(args.source_archive)
-    mode = "Windows pure-Python compatibility" if sys.platform == "win32" else "upstream native"
+    mode = "pure-Python compatibility" if use_python_only(sys.platform) else "upstream native"
     print(f"Installed pytorch-fast-transformers {VERSION} ({mode} mode).")
     return 0
 

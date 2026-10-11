@@ -28,7 +28,7 @@ physaft-thermo predict --smiles 'CCO' --t-min 280 --t-max 320 --n-points 5 --pro
 physaft-thermo predict --smiles 'CCO' --t-min 280 --t-max 320 --n-points 5 --properties critical_properties --output critical_output
 ```
 
-On macOS, install `llvm` and `libomp` with Homebrew before building `pytorch-fast-transformers` if they are absent. The checked Linux image is x86-64; other compatible Linux distributions may use the Conda recipe or Docker. Linux ARM64 is not part of the validated platform matrix. CPU-only, headless Linux hosts are supported.
+On macOS, the install script uses the verified pure-Python attention modules needed by SMI-TED-Light, so no Homebrew compiler setup is needed. The checked Linux image is x86-64; other compatible Linux distributions may use the Conda recipe or Docker. Linux ARM64 is not part of the validated platform matrix. CPU-only, headless Linux hosts are supported.
 
 ### Windows x86-64 and Windows 11 ARM64
 
@@ -88,7 +88,7 @@ The full integration check additionally requires the separately downloaded SMI-T
 This directory is an independent Git repository on branch `main`, with `origin` already pointing to `ES0613/physaft-thermo`. To publish an update:
 
 1. In a terminal, enter this directory and run `python tools/release_audit.py .` and `git status --short`.
-2. Run `git add -A`, then `git commit -m "Rename project to PhySAFT Thermo"`.
+2. Run `git add -A`, then `git commit -m "Fix macOS SMI-TED dependency installation"`.
 3. Run `git push origin main`. Use your normal GitHub authentication flow if prompted.
 4. Open the repository page and check the README, five safetensors weights, and workflow results. If the release should be public, change the repository visibility from Private to Public in GitHub Settings. The collaborator repository is separate and is not changed by these commands.
 
