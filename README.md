@@ -1,19 +1,31 @@
-# PhySAFT Thermo
+# PhySAFT: Physics-Guided Molecular Thermodynamics
 
-PhySAFT Thermo predicts selected pure-component PC-SAFT properties from a SMILES string and a temperature grid: vapor pressure, saturated liquid and vapor densities, heat of vaporization, and critical properties. Five neural networks trained on quantities derived from published PCP-SAFT parameter data predict Gchg/RT. Each network has its own epsilon(T) fit and property calculation; results are summarized across models.
+**PhySAFT Thermo** is the public, runnable example of the pure-component thermodynamic framework accompanying **Physics-Guided Learning for Reliable Molecular Thermodynamics Beyond Observed Chemical Space** by **Yi-Cheng Shen and Shiang-Tai Lin**. From a SMILES string and temperatures, it predicts vapor pressure, saturated liquid and vapor densities, heat of vaporization, and critical properties using five neural-network models and PC-SAFT.
+
+The paper has two companion repositories with the same underlying physics-guided architecture:
+
+| Repository | Model training source | Distribution |
+| --- | --- | --- |
+| **`physaft-thermo`** (this repository) | Quantities derived from publicly available PCP-SAFT pure-substance parameters | Public inference code and five trained model weights |
+| **`pcsaft-ml-pvap`** | NIST ThermoData Engine (TDE) data | Restricted to authorized collaborators; its NIST-trained weights and calibration assets are not distributed here |
+
+The authors do not publicly release the NIST TDE-trained models because of the applicable data-use restrictions. This repository lets readers run the proposed inference architecture using models trained from published parameter data. The authors expect that researchers using their own appropriately licensed databases can train models with potentially comparable performance, subject to data quality, coverage, and independent validation. The package includes inference code and converted weights, not the training tables or a complete retraining pipeline.
+
+## Workflow
 
 ```text
-SMILES -> 100-conformer RDKit geometry -> SMI-TED-Light embedding
-       -> five Gchg/RT networks -> five epsilon(T) fits
-       -> five PC-SAFT saturation, vaporization, or critical calculations
-       -> ensemble summaries
+SMILES -> 100-conformer RDKit geometry + SMI-TED-Light embedding
+       -> five independent Gchg/RT networks
+       -> per-model epsilon(T) -> PC-SAFT saturation and heat of vaporization
+       -> direct Gchg/RT critical matching -> critical properties
+       -> per-model results and five-model summaries
 ```
 
-This is an inference release. It bundles converted model weights, not the source training tables or training pipeline. It does not provide calibrated pressure-error estimates. Between-model spread is a descriptive statistic, not a prediction interval.
+Each model has its own predicted Gchg/RT curve and thermodynamic calculation. The five-model spread is an uncalibrated description of model disagreement, not a pressure-error estimate or prediction interval. This repository does not include the restricted release's calibrated vapor-pressure error bands or its Aspen/TDE Wagner comparison workflow.
 
-## Quick start
+## Reviewer quick start
 
-Use Python 3.11. The pinned SMI-TED-Light assets are downloaded separately (approximately 1.1 GB) and verified by SHA-256.
+For step-by-step setup on Ubuntu x86-64, macOS Apple Silicon, Windows x86-64, or Windows 11 ARM64 with x64 Python, see [REVIEWER_SETUP](docs/REVIEWER_SETUP.md). Use Python 3.11. The pinned SMI-TED-Light assets are downloaded separately (approximately 1.1 GB) and verified by SHA-256.
 
 ### Ubuntu x86-64 and macOS
 
@@ -23,12 +35,10 @@ conda activate physaft-thermo
 python tools/install_fast_transformers.py
 python -m pip install --no-deps -e .
 physaft-thermo download-smi-ted
-physaft-thermo predict --smiles 'CCO' --t-min 280 --t-max 320 --n-points 5 --output example_output
-physaft-thermo predict --smiles 'CCO' --t-min 280 --t-max 320 --n-points 5 --properties heat_of_vaporization --output heat_output
-physaft-thermo predict --smiles 'CCO' --t-min 280 --t-max 320 --n-points 5 --properties critical_properties --output critical_output
+physaft-thermo predict --smiles 'CCO' --t-min 280 --t-max 320 --n-points 5 --output example_output --strict
 ```
 
-On macOS, the install script uses the verified pure-Python attention modules needed by SMI-TED-Light, so no Homebrew compiler setup is needed. The checked Linux image is x86-64; other compatible Linux distributions may use the Conda recipe or Docker. Linux ARM64 is not part of the validated platform matrix. CPU-only, headless Linux hosts are supported.
+The SMI-TED-Light checkpoint, loader, and vocabulary come from a pinned IBM Research revision and are hash-verified before use; they are not redistributed in this repository. `tools/install_fast_transformers.py` verifies the official source distribution of the legacy attention dependency after PyTorch has been installed. Linux builds its native extension. macOS installs only the pure-Python attention modules used by SMI-TED-Light, so no Homebrew compiler setup is needed. The checked Linux image is x86-64; other compatible Linux distributions may use the Conda recipe or Docker. Linux ARM64 is not part of the validated platform matrix. CPU-only, headless Linux hosts are supported.
 
 ### Windows x86-64 and Windows 11 ARM64
 
@@ -43,7 +53,26 @@ physaft-thermo download-smi-ted
 physaft-thermo --help
 ```
 
-The preflight must report `sysconfig_platform: win-amd64`. On an ARM64 computer, use the full x64 Python path when creating the environment.
+The preflight must report `sysconfig_platform: win-amd64`. On an ARM64 computer, use the full x64 Python path when creating the environment. The Windows installer installs the pinned runtime and the same verified pure-Python SMI-TED attention subset used on macOS.
+
+## Select thermodynamic properties
+
+The default prediction calculates vapor pressure and both saturated phase densities. Select properties with comma-separated `--properties` in the CLI or a list in Python:
+
+| Property name | Reported result |
+| --- | --- |
+| `vapor_pressure` | Saturation pressure in Pa |
+| `liquid_density`, `vapor_density` | Saturated molar and mass densities in mol/m³ and kg/m³ |
+| `heat_of_vaporization` | Difference of saturated vapor and liquid residual enthalpies in J/mol and kJ/mol |
+| `critical_properties` | Per-model Tc, Pc, critical density, Zc, and molar volume |
+
+```bash
+physaft-thermo predict --smiles 'CCCCC' --t-min 280 --t-max 350 --n-points 5 \
+  --properties vapor_pressure,liquid_density,vapor_density,heat_of_vaporization,critical_properties \
+  --output thermodynamic_output --strict
+```
+
+Heat of vaporization reuses internally solved saturation states. Critical properties use direct ML Gchg/RT matching over the model's fixed temperature search domain; the input grid is recorded but does not bound that search. A critical-only request does not calculate saturation on the input grid. Failed states retain explicit statuses, and `--strict` exits nonzero if a requested model or temperature fails. Critical states labeled `closest_point_no_intersection` are approximate constructions, identified separately from accepted roots.
 
 ## Python API and batch CLI
 
@@ -52,28 +81,39 @@ from physaft_thermo import predict, predict_range
 
 result = predict_range("CCO", 280.0, 320.0, n_points=5)
 result.write("example_output")
-result = predict("CCO", [280.0, 290.0, 300.0, 310.0, 320.0])
-heat = predict_range("CCO", 280.0, 320.0, n_points=5, properties=["heat_of_vaporization"])
-critical = predict_range("CCO", 280.0, 320.0, n_points=5, properties=["critical_properties"])
+
+same_grid = predict("CCO", [280.0, 290.0, 300.0, 310.0, 320.0])
+heat = predict_range("CCO", 280.0, 320.0, n_points=5,
+                     properties=["heat_of_vaporization"])
+critical = predict_range("CCO", 280.0, 320.0, n_points=5,
+                         properties=["critical_properties"])
+print(heat.thermodynamics_summary)
+print(critical.critical_properties_by_model)
 ```
 
 ```bash
 physaft-thermo batch --input examples/batch_input.csv --output batch_output --strict
 ```
 
-Use `--properties` with one or more comma-separated choices: `vapor_pressure`, `liquid_density`, `vapor_density`, `heat_of_vaporization`, and `critical_properties`. With no selection, the three saturation properties are calculated. Heat of vaporization internally solves saturation states first. Critical properties are calculated over a fixed model search domain; the supplied temperature grid is recorded but does not bound that search.
+The batch CSV needs `smiles`, `t_min_k`, and `t_max_k`; `n_points` is optional. Inputs must be single-fragment molecules with at least five distinct, finite, positive temperatures. Normal mode records partial results with explicit statuses. The same `--properties` choice works with `batch`.
 
-The batch CSV needs `smiles`, `t_min_k`, and `t_max_k`; `n_points` is optional. Inputs must be single-fragment molecules with at least five distinct, finite, positive temperatures. `--strict` returns a nonzero exit code if any requested model or temperature fails. Normal mode records partial results with explicit statuses.
+## Output files
 
-## Output
+- `geometry.json`: canonical SMILES, mean van der Waals area/volume, PC-SAFT `m` and `sigma`, and conformer diagnostics.
+- `gchg_rt.csv`: each model's predicted Gchg/RT over the requested temperature grid when saturation is calculated.
+- `epsilon_fits.csv`: per-model `epsilon(T)` coefficients and fit status.
+- `pvap_by_model.csv`: vapor pressure, both phase densities, fugacity residual, convergence flag, and solver status.
+- `ensemble_summary.csv`: pressure and phase-density means, sample standard deviations, geometric-mean pressure, and successful-model counts. The spread is descriptive and uncalibrated.
+- `thermodynamics_by_model.csv`, `thermodynamics_summary.csv`: heat of vaporization and ensemble summary when requested.
+- `critical_properties_by_model.csv`, `critical_properties_summary.csv`: critical-property values, model statuses, and ensemble summary when requested.
+- `critical_gchg_curves.csv`, `critical_candidates.csv`, `critical_vle_validation.csv`, `critical_branch_choices.csv`, and `critical_gchg_diagnostics.svg`: critical-root and validation diagnostics when requested.
+- `run_metadata.json`: inputs, model manifest, verified SMI-TED hashes, runtime versions, and calculation-stage definitions.
 
-A saturation or vaporization run writes `geometry.json`, `gchg_rt.csv`, `epsilon_fits.csv`, `pvap_by_model.csv`, `ensemble_summary.csv`, and `run_metadata.json`. The saturation files include pressure and both phase densities in mol/m³ and kg/m³. The ensemble summary includes arithmetic pressure mean and sample standard deviation, mean and sample standard deviation of ln(P), geometric-mean pressure, phase-density summaries, and successful-model counts. Selecting heat of vaporization adds `thermodynamics_by_model.csv` and `thermodynamics_summary.csv` with J/mol and kJ/mol values.
+Files for unrequested calculation stages are omitted. Heat-of-vaporization runs retain the saturation files used to obtain the coexistence states. No calibrated pressure-error columns or experimental comparison plots are produced.
 
-Selecting critical properties writes `critical_properties_by_model.csv`, `critical_properties_summary.csv`, candidate and validation CSVs, and `critical_gchg_diagnostics.svg`. Accepted exact roots and approximate closest-point results have distinct statuses. Unsolved states remain missing with a failure status. The five-model spread is descriptive and uncalibrated.
+The implementation details are described in [METHODS](docs/METHODS.md), [MODEL_CARD](docs/MODEL_CARD.md), and [REPRODUCIBILITY](docs/REPRODUCIBILITY.md). The source publication and third-party assets are identified in [DATA_AVAILABILITY](docs/DATA_AVAILABILITY.md) and [THIRD_PARTY_NOTICES](docs/THIRD_PARTY_NOTICES.md).
 
-For installation on a new computer, see [REVIEWER_SETUP](docs/REVIEWER_SETUP.md). The model and inference methods are described in [METHODS](docs/METHODS.md), [MODEL_CARD](docs/MODEL_CARD.md), and [REPRODUCIBILITY](docs/REPRODUCIBILITY.md). The source publication and third-party assets are identified in [DATA_AVAILABILITY](docs/DATA_AVAILABILITY.md) and [THIRD_PARTY_NOTICES](docs/THIRD_PARTY_NOTICES.md).
-
-## Platform checks
+## Reproducibility and tests
 
 ```bash
 python -m pytest -q
@@ -81,19 +121,28 @@ python tools/release_audit.py .
 physaft-thermo --help
 ```
 
-The full integration check additionally requires the separately downloaded SMI-TED-Light assets. A Linux CPU Docker image can be built with `docker build -t physaft-thermo .`.
+The full end-to-end test additionally requires verified SMI-TED-Light assets:
 
-## Publish to GitHub
+```bash
+physaft-thermo download-smi-ted
+python -m pytest -q -m integration
+```
 
-This directory is an independent Git repository on branch `main`, with `origin` already pointing to `ES0613/physaft-thermo`. To publish an update:
+The GitHub Actions matrix checks Ubuntu x86-64, macOS ARM64, Windows x86-64, and Windows 11 ARM64 with x64 Python. The separate full-integration workflow exercises actual SMI-TED-Light inference. A Linux x86-64 CPU Docker image can be built with `docker build -t physaft-thermo .`. Dependency versions and model-asset hashes are documented in [REPRODUCIBILITY](docs/REPRODUCIBILITY.md).
 
-1. In a terminal, enter this directory and run `python tools/release_audit.py .` and `git status --short`.
-2. Run `git add -A`, then `git commit -m "Add reviewer setup and translate source comments"`.
-3. Run `git push origin main`. Use your normal GitHub authentication flow if prompted.
-4. Open the repository page and check the README, five safetensors weights, and workflow results. If the release should be public, change the repository visibility from Private to Public in GitHub Settings. The collaborator repository is separate and is not changed by these commands.
+## Scope and limitations
 
-## Scope and citation
+- The implementation targets pure components. Mixtures, associating systems, ionic species, and process-safety decisions require separate validation.
+- The effective non-associating PC-SAFT calculation does not establish accuracy for every chemical family or extrapolated temperature. Unsolved saturation states remain missing with a status.
+- Inference uses exactly 100 RDKit conformers and can take longer than descriptor-only prediction.
+- Critical results marked `closest_point_no_intersection` are approximate; solver and validation failures remain explicit.
+- Five-model standard deviations describe disagreement among these public weights. They are not calibrated uncertainty intervals or substitutes for validation against an independent reference dataset.
+- This release supplies no training records, retraining scripts, NIST TDE-trained weights, calibration model, or Wagner reference coefficients.
 
-This release addresses pure-component research use. It does not establish accuracy for mixtures, associating fluids, ionic systems, safety design, or temperatures outside the relevant training domain. The source parameters come from the publication identified in [DATA_AVAILABILITY](docs/DATA_AVAILABILITY.md). Cite this software using `CITATION.cff` and the source publication.
+## Citation and availability
 
-Copyright (c) 2026 Yi-Cheng Shen and Shiang-Tai Lin. Code and converted inference assets are released under BSD-3-Clause. SMI-TED-Light is fetched from IBM Research and is not redistributed here.
+The research framework is described in **Physics-Guided Learning for Reliable Molecular Thermodynamics Beyond Observed Chemical Space** by **Yi-Cheng Shen and Shiang-Tai Lin**. Cite the paper when its formal citation becomes available. For this software release, use [CITATION.cff](CITATION.cff).
+
+The public weights were trained from quantities derived from the published PCP-SAFT parameter source: *PCP-SAFT Parameters of Pure Substances Using Large Experimental Databases*, [DOI: 10.1021/acs.iecr.3c02255](https://doi.org/10.1021/acs.iecr.3c02255). See [DATA_AVAILABILITY](docs/DATA_AVAILABILITY.md) for provenance and distribution scope. The separate NIST TDE-trained companion repository is available only to authorized collaborators.
+
+Copyright (c) 2026 Yi-Cheng Shen and Shiang-Tai Lin. The code and converted inference assets are released under [BSD-3-Clause](LICENSE). SMI-TED-Light is fetched from IBM Research and is not redistributed here; see [THIRD_PARTY_NOTICES](docs/THIRD_PARTY_NOTICES.md).
