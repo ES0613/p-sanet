@@ -1,6 +1,6 @@
 # PhySAFT: Physics-Guided Molecular Thermodynamics
 
-**PhySAFT Thermo** is the public, runnable example of the pure-component thermodynamic framework accompanying **Physics-Guided Learning for Reliable Molecular Thermodynamics Beyond Observed Chemical Space** by **Yi-Cheng Shen and Shiang-Tai Lin**. From a SMILES string and temperatures, it predicts vapor pressure, saturated liquid and vapor densities, residual enthalpy and entropy, heat and entropy of vaporization, and critical properties using five neural-network models and PC-SAFT.
+**PhySAFT Thermo** is the public, runnable example of the pure-component thermodynamic framework accompanying **Physics-Guided Learning for Reliable Molecular Thermodynamics Beyond Observed Chemical Space** by **Yi-Cheng Shen, Shu Wang, and Shiang-Tai Lin**. From a SMILES string and temperatures, it predicts vapor pressure, saturated liquid and vapor densities, residual enthalpy and entropy, heat and entropy of vaporization, and critical properties using five neural-network models and PC-SAFT.
 
 The paper has two companion repositories with the same underlying physics-guided architecture:
 
@@ -145,7 +145,7 @@ The GitHub Actions matrix checks Ubuntu x86-64, macOS ARM64, Windows x86-64, and
 
 ## Citation and availability
 
-The research framework is described in **Physics-Guided Learning for Reliable Molecular Thermodynamics Beyond Observed Chemical Space** by **Yi-Cheng Shen and Shiang-Tai Lin**. Cite the paper when its formal citation becomes available. For this software release, use [CITATION.cff](CITATION.cff).
+The research framework is described in **Physics-Guided Learning for Reliable Molecular Thermodynamics Beyond Observed Chemical Space** by **Yi-Cheng Shen, Shu Wang, and Shiang-Tai Lin**. Cite the paper when its formal citation becomes available. For this software release, use [CITATION.cff](CITATION.cff).
 
 The public weights were trained from quantities derived from the published PCP-SAFT parameter source: *PCP-SAFT Parameters of Pure Substances Using Large Experimental Databases*, [DOI: 10.1021/acs.iecr.3c02255](https://doi.org/10.1021/acs.iecr.3c02255). See [DATA_AVAILABILITY](docs/DATA_AVAILABILITY.md) for provenance and distribution scope. The separate NIST TDE-trained companion repository is available only to authorized collaborators.
 
