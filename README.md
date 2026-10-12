@@ -71,7 +71,7 @@ A saturation or vaporization run writes `geometry.json`, `gchg_rt.csv`, `epsilon
 
 Selecting critical properties writes `critical_properties_by_model.csv`, `critical_properties_summary.csv`, candidate and validation CSVs, and `critical_gchg_diagnostics.svg`. Accepted exact roots and approximate closest-point results have distinct statuses. Unsolved states remain missing with a failure status. The five-model spread is descriptive and uncalibrated.
 
-The model and inference methods are described in [METHODS](docs/METHODS.md), [MODEL_CARD](docs/MODEL_CARD.md), and [REPRODUCIBILITY](docs/REPRODUCIBILITY.md). The source publication and third-party assets are identified in [DATA_AVAILABILITY](docs/DATA_AVAILABILITY.md) and [THIRD_PARTY_NOTICES](docs/THIRD_PARTY_NOTICES.md).
+For installation on a new computer, see [REVIEWER_SETUP](docs/REVIEWER_SETUP.md). The model and inference methods are described in [METHODS](docs/METHODS.md), [MODEL_CARD](docs/MODEL_CARD.md), and [REPRODUCIBILITY](docs/REPRODUCIBILITY.md). The source publication and third-party assets are identified in [DATA_AVAILABILITY](docs/DATA_AVAILABILITY.md) and [THIRD_PARTY_NOTICES](docs/THIRD_PARTY_NOTICES.md).
 
 ## Platform checks
 
@@ -88,7 +88,7 @@ The full integration check additionally requires the separately downloaded SMI-T
 This directory is an independent Git repository on branch `main`, with `origin` already pointing to `ES0613/physaft-thermo`. To publish an update:
 
 1. In a terminal, enter this directory and run `python tools/release_audit.py .` and `git status --short`.
-2. Run `git add -A`, then `git commit -m "Fix macOS SMI-TED dependency installation"`.
+2. Run `git add -A`, then `git commit -m "Add reviewer setup and translate source comments"`.
 3. Run `git push origin main`. Use your normal GitHub authentication flow if prompted.
 4. Open the repository page and check the README, five safetensors weights, and workflow results. If the release should be public, change the repository visibility from Private to Public in GitHub Settings. The collaborator repository is separate and is not changed by these commands.
 

@@ -349,18 +349,18 @@ class EOS:
 
     def PCSAFT_assoc(self):
         """
-        Python 版的 PCSAFT_assoc()
-        - 若 ncomp=1，直接用單成分解析解
-        - 若 ncomp>1，則用 Newton 迭代解 4條關聯方程
+        Python implementation of PCSAFT_assoc().
+        - For one component, use the analytic association-site solution.
+        - For multiple components, solve four association equations iteratively.
         """
         if self.ncomp == 1:
-            # 單一成分: 直接用解析解
+            # Single component: use the analytic solution.
             # xAB(0) = xAB(1) = [1 - sqrt(1 + 4*rho*deltaAB[0][0])] / -2 / (rho*deltaAB[0][0])
             val = (1.0 - math.sqrt(1.0 + 4.0*self.rho*self.deltaAB[0][0])) / (-2.0*self.rho*self.deltaAB[0][0])
 
-            # 假設我們用 component[0] 來儲存 "各位點" 的 xAB
-            # 以及 EOS.xAB[][] 來儲存
-            self.comp[0].PCSAFTxAB = [ val, val ]   # 若 class Component 有對應的PCSAFTxAB
+            # Store the association-site fractions in component[0].
+            # Also store them in EOS.xAB[][].
+            self.comp[0].PCSAFTxAB = [ val, val ]   # Store the site fractions on the Component instance.
 #             print(f"deltaAB={self.deltaAB[0][0]}, xAB={val}")
 
             self.xAB[0][0] = val
@@ -373,9 +373,9 @@ class EOS:
 
 
 
-            # 二元(或多成分)系統
-            # 先假設 ncomp=2, each with 2 association sites => 4 個未知量 n[0..3]
-            # 如果要更通用多位點(>2)則需做更多維度的處理，以下僅示範二元 case
+            # Binary or multicomponent system.
+            # Assume two components with two association sites each: four unknowns n[0..3].
+            # Additional sites would require a higher-dimensional system; this branch handles two components.
             if self.num_assoc_components == 1:
                 val = (1.0 - math.sqrt(1.0 + 4.0*self.rho*self.x[0]*self.deltaAB[0][0])) / (-2.0*self.rho*self.x[0]*self.deltaAB[0][0])
                 self.xAB[0][0] = val
@@ -408,7 +408,7 @@ class EOS:
                 # n = [0.5, 0.5, 1, 1]  # initial guess
                 # tol = 1e-15
 
-                # # 先計算初始 F[i]
+                # # Calculate the initial residuals F[i].
                 # F = [0.0, 0.0, 0.0, 0.0]
                 # F[0] = n[0] + self.rho*n[0]*(
                 #     self.x[0]*n[1]*self.deltaAB[0][0] +
@@ -425,9 +425,9 @@ class EOS:
 
                 # print("F = ", F[0], F[1], F[2], F[3])
 
-                # # 進行 Newton 迭代
+                # # Perform Newton iterations.
                 # while True:
-                #     # 建立增廣矩陣(4x5)
+                #     # Build the augmented 4x5 matrix.
                 #     matrix = np.zeros((4,5), dtype=float)
 
                 #     matrix[0][0] = self.rho*(self.deltaAB[0][0]*n[2]*self.x[0] + self.deltaAB[0][1]*n[3]*self.x[1]) + 1.0
@@ -454,24 +454,24 @@ class EOS:
                 #     matrix[3][3] = self.rho*(self.deltaAB[1][0]*n[0]*self.x[0] + self.deltaAB[1][1]*n[1]*self.x[1]) + 1.0
                 #     matrix[3][4] = -F[3]
 
-                #     # 用克拉默法則或 np.linalg solve 來解
-                #     # 但是我們這裡還是先照C++ 方式自己做
-                #     # 這裡直接用 numpy (簡便)：
+                #     # Solve with a linear-system method.
+                #     # Follow the original C++ calculation.
+                #     # Use NumPy for the linear solve:
                 #     A = matrix[:,:4]   # (4x4)
                 #     b = -matrix[:,4]   # (4, )
 
-                #     # 嘗試解 Ax = b
+                #     # Try to solve Ax = b.
                 #     try:
                 #         sol = np.linalg.solve(A, b)  # sol = [xx, yy, zz, uu]
                 #     except np.linalg.LinAlgError:
-                #         # 若 base_D=0 導致不可解
+                #         # Handle a singular system.
                 #         sol = np.zeros(4, dtype=float)
 
-                #     # 更新 n
+                #     # Update n.
                 #     for i_ in range(4):
                 #         n[i_] += sol[i_]
 
-                #     # 更新 F
+                #     # Update F.
                 #     F[0] = n[0] + self.rho*n[0]*(
                 #         self.x[0]*n[1]*self.deltaAB[0][0] +
                 #         self.x[1]*n[3]*self.deltaAB[0][1]) - 1.0
@@ -485,25 +485,25 @@ class EOS:
                 #         self.x[0]*n[0]*self.deltaAB[1][0] +
                 #         self.x[1]*n[2]*self.deltaAB[1][1]) - 1.0
 
-                #     # 判斷收斂
+                #     # Check convergence.
                 #     if (abs(F[0]) < tol and abs(F[1]) < tol and
                 #         abs(F[2]) < tol and abs(F[3]) < tol):
                 #         break
 
-                # # 最後更新 xAB
+                # # Finally update xAB.
                 # self.xAB[0][0] = n[0]
                 # self.xAB[0][1] = n[1]
                 # self.xAB[1][0] = n[2]
                 # self.xAB[1][1] = n[3]
-                # # 若有更多組分/更多位點，需要擴增
+                # # More components or sites require extending this system.
                 # # print(f"n= {n}, F={F}")
 
-        # 函式結尾
+        # End of association calculation.
         return 0
 
 
     def PCSAFT_P(self):
-        # 壓縮因子和它們的導數
+        # Compressibility contributions and their derivatives.
         zhs = zhc = zdsp = 0.0
         zgesdz = zhsdz = zhcdz = zdspdz = 0.0
         dgijdz = np.zeros((self.ncomp, self.ncomp))
@@ -513,7 +513,7 @@ class EOS:
         c1_con = c2_con = c3_con = 0.0
         sumZassoc = zassoc = 0.0
 
-        # 計算基本參數
+        # Calculate base parameters.
         self.zms = 1.0 - self.dense
         self.rho = self.dense / self.z3t
         self.V = 1.0 / (self.rho / self.Na * 1.0E30)
@@ -521,51 +521,51 @@ class EOS:
         self.z1 = self.z1t * self.rho
         self.z2 = self.z2t * self.rho
         self.z3 = self.z3t * self.rho
-#         print(f"基本參數: zms={zms}, rho={rho}, V={self.V}, z0={z0}, z1={z1}, z2={z2}, z3={z3}")
+#         print(f"Base parameters: zms={zms}, rho={rho}, V={self.V}, z0={z0}, z1={z1}, z2={z2}, z3={z3}")
 
 
-        # 計算gij及其導數
+        # Calculate gij and its derivatives.
         for i in range(self.ncomp):
             for j in range(self.ncomp):
                 self.ggij[i][j] = 1.0 / self.zms + 3.0 * self.dijab[i][j] * self.z2 / self.zms**2 + 2.0 * (self.dijab[i][j] * self.z2)**2 / self.zms**3
                 dgijdz[i][j] = 1.0 / self.zms**2 + 3.0 * self.dijab[i][j] * self.z2 * (1.0 + self.z3) / (self.z3 * self.zms**3) + (self.dijab[i][j] * self.z2 / self.zms**2)**2 * (4.0 + 2.0 * self.z3) / self.z3
                 dgijd2[i][j] = 2.0 / self.zms**3 + 6.0 * self.dijab[i][j] * self.z2 / self.z3 / self.zms**4 * (2.0 + self.z3) + (2.0 * self.dijab[i][j] * self.z2 / self.z3)**2 / self.zms**5 * (1.0 + 4.0 * self.z3 + self.z3**2)
-#         print(f"gij導數: ggij={self.ggij}, dgijdz={dgijdz}, dgijd2={dgijd2}")
+#         print(f"gij derivatives: ggij={self.ggij}, dgijdz={dgijdz}, dgijd2={dgijd2}")
 
-        # 計算硬球項的壓縮因子和導數
+        # Calculate the hard-sphere compressibility term and derivative.
         zhs = self.PCSAFTmm * (self.z3 / self.zms + 3.0 * self.z1 * self.z2 / self.z0 / self.zms**2 + self.z2**3 / self.z0 * (3.0 - self.z3) / self.zms**3)
         zhsdz = self.PCSAFTmm * (1.0 / self.zms**2 + 3.0 * self.z1 * self.z2 / self.z0 / self.z3 * (1.0 + self.z3) / self.zms**3 + 6.0 * self.z2**3 / self.z0 / self.z3 / self.zms**4)
-#         print(f"硬球項: zhs={zhs}, zhsdz={zhsdz}")
+#         print(f"Hard-sphere term: zhs={zhs}, zhsdz={zhsdz}")
 
-        # 鏈段項的壓縮因子和導數
+        # Chain compressibility term and derivative.
         for i in range(self.ncomp):
             zhc += self.x[i] * (1.0 - self.comp[i].PCSAFTm) * self.dense / self.ggij[i][i] * dgijdz[i][i]
             zhcdz += self.x[i] * (1.0 - self.comp[i].PCSAFTm) * (-self.dense * (dgijdz[i][i] / self.ggij[i][i])**2 + dgijdz[i][i] / self.ggij[i][i] + self.dense / self.ggij[i][i] * dgijd2[i][i])
-#         print(f"鏈段項: zhc={zhc}, zhcdz={zhcdz}")
-        # 分散項的計算
+#         print(f"Chain term: zhc={zhc}, zhcdz={zhcdz}")
+        # Calculate the dispersion contribution.
         for m in range(7):
             I2 += self.bpar[m] * self.dense**m
             edI1dz += self.apar[m] * (m + 1) * self.dense**m
             edI2dz += self.bpar[m] * (m + 1) * self.dense**m
             edI1d2 += self.apar[m] * (m + 1) * m * self.dense**(m - 1)
             edI2d2 += self.bpar[m] * (m + 1) * m * self.dense**(m - 1)
-#         print(f"分散項: I2={I2}, edI1dz={edI1dz}, edI2dz={edI2dz}, edI1d2={edI1d2}, edI2d2={edI2d2}")
+#         print(f"Dispersion term: I2={I2}, edI1dz={edI1dz}, edI2dz={edI2dz}, edI1d2={edI1d2}, edI2d2={edI2d2}")
 
-        # 分散項的常數計算
+        # Calculate dispersion constants.
         c1_con = 1.0 / (1.0 + self.PCSAFTmm * (8.0 * self.dense - 2.0 * self.dense**2) / self.zms**4 + (1.0 - self.PCSAFTmm) * (20.0 * self.dense - 27.0 * self.dense**2 + 12.0 * self.dense**3 - 2.0 * self.dense**4) / (self.zms * (2.0 - self.dense))**2)
         c2_con = -c1_con**2 * (self.PCSAFTmm * (-4.0 * self.dense**2 + 20.0 * self.dense + 8.0) / self.zms**5 + (1.0 - self.PCSAFTmm) * (2.0 * self.dense**3 + 12.0 * self.dense**2 - 48.0 * self.dense + 40.0) / (self.zms * (2.0 - self.dense))**3)
         c3_con = 2.0 * c2_con**2 / c1_con - c1_con**2 * (self.PCSAFTmm * (-12.0 * self.dense**2 + 72.0 * self.dense + 60.0) / self.zms**6 + (1.0 - self.PCSAFTmm) * (-6.0 * self.dense**4 - 48.0 * self.dense**3 + 288.0 * self.dense**2 - 480.0 * self.dense + 264.0) / (self.zms * (2.0 - self.dense))**4)
-#         print(f"分散項常數: c1_con={c1_con}, c2_con={c2_con}, c3_con={c3_con}")
+#         print(f"Dispersion constants: c1_con={c1_con}, c2_con={c2_con}, c3_con={c3_con}")
 
-        # 計算 zdsp 和 zdspdz
+        # Calculate zdsp and zdspdz.
         zdsp = -2.0 * np.pi * self.rho * edI1dz * self.order1 - np.pi * self.rho * self.order2 * self.PCSAFTmm * (c2_con * I2 * self.dense + c1_con * edI2dz)
         zdspdz = zdsp / self.dense - 2.0 * np.pi * self.rho * edI1d2 * self.order1 - np.pi * self.rho * self.order2 * self.PCSAFTmm * (c3_con * I2 * self.dense + 2.0 * c2_con * edI2dz + c1_con * edI2d2)
-#         print(f"分散項壓縮因子: zdsp={zdsp}, zdspdz={zdspdz}")
+#         print(f"Dispersion compressibility factor: zdsp={zdsp}, zdspdz={zdspdz}")
         self.P_pcsaft_z1 = - 2.0 * math.pi * self.rho * edI1dz;
         self.P_pcsaft_z2 = - math.pi * self.rho * self.PCSAFTmm * (c2_con * I2 * self.dense + c1_con * edI2dz);
         # print("self.P_pcsaft_z1 = ", self.P_pcsaft_z1, " ;self.P_pcsaft_z2 = ", self.P_pcsaft_z2)
 
-        # 關聯項
+        # Association term.
         checkeAB = sum(comp.PCSAFTeAB for comp in self.comp)
 #         print("checkeAB = ", checkeAB)
 #         print("num_assoc_components = ", num_assoc_components)
@@ -577,7 +577,7 @@ class EOS:
 #                     print("self.sigTij[i][j] = ", self.sigTij[i][j], "self.ggij[i][j] = ", self.ggij[i][j], "self.kABij[i][j] = ", self.kABij[i][j], "self.eABij[i][j] = ", self.eABij[i][j])
                     self.deltaAB[i][j] = self.sigTij[i][j]**3 * self.ggij[i][j] * self.kABij[i][j] * (np.exp(self.eABij[i][j] / self.T) - 1.0)
                     dgijdrho[i][j] = self.z3 / self.zms**2 + self.dijab[i][j] * (3.0 * self.z2 / self.zms**2 + 6.0 * self.z2 * self.z3 / self.zms**3) + self.dijab[i][j]**2 * (4.0 * self.z2**2 / self.zms**3 + 6.0 * self.z2**2 * self.z3 / self.zms**4)
-            # print(f"關聯項計算: deltaAB={self.deltaAB}, dgijdrho={dgijdrho}")
+            # print(f"Association calculation: deltaAB={self.deltaAB}, dgijdrho={dgijdrho}")
 
             self.PCSAFT_assoc()
             sumZassoc = 0.0
@@ -589,10 +589,10 @@ class EOS:
                         continue
                     sumZassoc += 2 * self.x[i] * self.xAB[i][j] * self.x[j] * self.xAB[j][i] * self.deltaAB[i][j] * (1 + dgijdrho[i][j] / self.ggij[i][j])
             zassoc = -self.rho * sumZassoc / 2.0
-#         print(f"關聯項: zassoc={zassoc}")
+#         print(f"Association term: zassoc={zassoc}")
 
 
-        # 最終計算壓縮因子和壓力
+        # Calculate the final compressibility factor and pressure.
         self.Zges = 1.0 + zhs + zhc + zdsp + zassoc
 
         # for cavity free energy 115.03.27
@@ -610,7 +610,7 @@ class EOS:
         # print("Zges = ", self.Zges, ", Zres = ", self.Zres, ", pges = ", self.pges, ", pgesdz = ", self.pgesdz)
 
 #         print(rho)
-#         print(f"最終壓縮因子和壓力: Zres={self.Zres}")
+#         print(f"Final compressibility factor and pressure: Zres={self.Zres}")
 
         return 0
 
@@ -720,7 +720,7 @@ class EOS:
         for i in range(self.ncomp):
             Ahc += self.x[i] * (1.0 - self.comp[i].PCSAFTm) * math.log(self.ggij[i][i])
 
-        # 分散项 (Dispersion contribution)
+        # Dispersion contribution
         I1 = I2 = 0.0
         for m in range(7):
             I1 += self.apar[m] * self.dense ** m
@@ -735,7 +735,7 @@ class EOS:
 
         Adsp = -2.0 * math.pi * self.rho * I1 * self.order1 - math.pi * self.rho * c1_con * self.PCSAFTmm * I2 * self.order2
 
-        # 关联项 (Association contribution)
+        # Association contribution
         Aassoc = 0.0
         checkeAB = 0.0
         for i in range(self.ncomp):
@@ -754,7 +754,7 @@ class EOS:
                         Aassoc += self.x[i] * (math.log(self.xAB[i][j]) - (self.xAB[i][j] / 2.0) + 0.5)
                         # print(f"x[{i}] {self.x[i]:e}, xAB {self.xAB[i][j]:e}, Aassoc {Aassoc:e}")
 
-        # 计算残余Helmholtz自由能
+        # Calculate residual Helmholtz free energy.
         self.Ares = Ahs + Ahc + Adsp + Aassoc
         self.ahs = Ahs
         self.ahc = Ahc

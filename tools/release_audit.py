@@ -13,6 +13,7 @@ SKIP_PARTS = {".git", ".pytest_cache", "__pycache__", "build", "dist"}
 FORBIDDEN_SUFFIXES = {".joblib", ".pkl", ".pickle", ".pt", ".xlsx", ".xls"}
 HIDDEN_LABELS = ("rota" + "tion", "f" + "old")
 INTERNAL_PATTERN = re.compile(r"(?<![A-Za-z])(?:" + "|".join(HIDDEN_LABELS) + r")(?![A-Za-z])", re.I)
+CJK_PATTERN = re.compile(r"[\u3000-\u303f\u3400-\u9fff\uf900-\ufaff\uff00-\uffef]")
 
 
 def audit(root: Path) -> list[str]:
@@ -27,6 +28,8 @@ def audit(root: Path) -> list[str]:
             continue
         if INTERNAL_PATTERN.search(label):
             problems.append(f"internal identifier in path: {relative}")
+        if CJK_PATTERN.search(relative.as_posix()):
+            problems.append(f"non-English characters in path: {relative}")
         if not path.is_file():
             continue
         if relative.as_posix() == "tools/release_audit.py":
@@ -42,6 +45,8 @@ def audit(root: Path) -> list[str]:
             continue
         if INTERNAL_PATTERN.search(content):
             problems.append(f"internal identifier in content: {relative}")
+        if CJK_PATTERN.search(content):
+            problems.append(f"non-English characters in content: {relative}")
         if re.search(r"source_checkpoint_sha256|best_validation_metrics|private_reference", content, re.I):
             problems.append(f"internal model metadata: {relative}")
     return problems
