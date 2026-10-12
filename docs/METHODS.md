@@ -14,7 +14,7 @@ Five independent ChargeFusionNet networks receive a 768-dimensional SMI-TED embe
 
 No experimental vapor pressure, Wagner/DIPPR coefficient, or experimental critical temperature is used as a pressure guess. For each fitted model and temperature, the solver scans a PC-SAFT pressure isotherm for the three-density-root region and solves liquid-vapor fugacity equality with bracketed Brent iteration. It accepts a state only with absolute log-fugacity residual at most `1e-5` and liquid-vapor packing-fraction gap above `1e-12`. Failed states remain missing with a status. The reported five-model pressure spread is uncalibrated.
 
-## Saturation heat of vaporization with epsilon(T)
+## Saturation caloric properties with epsilon(T)
 
 Let `a=Ares/(RT)` and `a_T=(∂a/∂T)_rho`, at fixed molecular number density and composition. For the non-associating EOS:
 
@@ -32,6 +32,8 @@ Gres = Hres - T*Sres = RT * [a + Z - 1 - ln Z].
 The analytic derivative includes hard-sphere, hard-chain and dispersion terms: temperature dependence of collision diameters, packing-fraction moments, contact values, `I1`, `I2`, `C1`, and both energy moments. Epsilon is clamped to its fitted endpoints outside the fit range with zero epsilon derivative; the endpoint derivative is taken from the interior. Scalar epsilon remains supported. Association derivatives are explicitly unsupported.
 
 Residual H/S use an ideal gas at the same T/P as reference. At accepted pure-component saturation, that reference cancels between phases: `ΔHvap=Hres_vap-Hres_liq` and `ΔSvap=Sres_vap-Sres_liq`. The code reuses accepted pressure/phase densities and reports the identity residual `|ΔHvap/T-ΔSvap|`; it does not estimate ΔSvap merely by dividing ΔHvap by T. Mass density uses RDKit molecular weight with the EOS constants `R=8.314` and `N_A=6.0221367e23`.
+
+Users may request saturated liquid and vapor `enthalpy` (`Hres_liq_J_mol`, `Hres_vap_J_mol`), `entropy` (`Sres_liq_J_mol_K`, `Sres_vap_J_mol_K`), `heat_of_vaporization` (`Hvap_J_mol`, `Hvap_kJ_mol`), or `entropy_of_vaporization` (`Svap_J_mol_K`). Only selected caloric values are written to the thermodynamics CSV files.
 
 ## Critical properties
 

@@ -41,6 +41,26 @@ def test_vaporization_reuses_vle_and_writes_densities(mocked_inference, tmp_path
     assert not (tmp_path / "critical_properties_by_model.csv").exists()
 
 
+@pytest.mark.parametrize("property_name,expected_columns", [
+    ("enthalpy", {"Hres_liq_J_mol", "Hres_vap_J_mol"}),
+    ("entropy", {"Sres_liq_J_mol_K", "Sres_vap_J_mol_K"}),
+    ("heat_of_vaporization", {"Hvap_J_mol", "Hvap_kJ_mol"}),
+    ("entropy_of_vaporization", {"Svap_J_mol_K"}),
+])
+def test_caloric_selection_and_output(mocked_inference, tmp_path, property_name, expected_columns):
+    result = pipeline.predict_range("CCO", 280, 320, n_points=5, models=["model_1"],
+                                    properties=[property_name])
+    assert not result.has_failures
+    all_columns = set().union(*map(set, pipeline.CALORIC_VALUES.values()))
+    assert expected_columns <= set(result.thermodynamics_by_model)
+    assert set(result.thermodynamics_by_model) & (all_columns - expected_columns) == set()
+    assert {f"{column}_mean" for column in expected_columns} <= set(result.thermodynamics_summary)
+    result.write(tmp_path)
+    saved = pd.read_csv(tmp_path / "thermodynamics_by_model.csv")
+    assert expected_columns <= set(saved)
+    assert (tmp_path / "pvap_by_model.csv").is_file()
+
+
 def test_critical_only_skips_vle_grid(mocked_inference, monkeypatch, tmp_path):
     def forbidden(*_, **__):
         pytest.fail("Critical-only must skip the requested VLE grid")
@@ -70,8 +90,11 @@ def test_invalid_property_selection_is_rejected(properties):
 
 
 def test_cli_property_selection(mocked_inference, tmp_path):
-    output = tmp_path / "heat"
+    output = tmp_path / "caloric"
     assert main(["predict", "--smiles", "CCO", "--t-min", "280", "--t-max", "320",
-                 "--n-points", "5", "--models", "model_1", "--properties", "heat_of_vaporization",
+                 "--n-points", "5", "--models", "model_1", "--properties",
+                 "enthalpy,entropy,heat_of_vaporization,entropy_of_vaporization",
                  "--output", str(output), "--strict"]) == 0
     assert (output / "thermodynamics_by_model.csv").is_file()
+    assert set().union(*map(set, pipeline.CALORIC_VALUES.values())) <= set(
+        pd.read_csv(output / "thermodynamics_by_model.csv"))

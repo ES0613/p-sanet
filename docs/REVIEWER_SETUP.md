@@ -127,14 +127,15 @@ physaft-thermo download-smi-ted
 physaft-thermo --help
 physaft-thermo predict --smiles CCO --t-min 280 --t-max 320 --n-points 5 --output reviewer_vle --strict
 physaft-thermo predict --smiles CCO --t-min 280 --t-max 320 --n-points 5 --properties heat_of_vaporization --output reviewer_heat --strict
+physaft-thermo predict --smiles CCO --t-min 280 --t-max 320 --n-points 5 --properties enthalpy,entropy,heat_of_vaporization,entropy_of_vaporization --output reviewer_caloric --strict
 physaft-thermo predict --smiles CCO --t-min 280 --t-max 320 --n-points 5 --properties critical_properties --output reviewer_critical --strict
 ```
 
 The download verifies the loader, vocabulary, and checkpoint hashes. By default, it installs them under the current user's `~/.cache/physaft_thermo/smi_ted_light` directory (the corresponding user-profile location on Windows). Subsequent predictions reuse these assets. A successful strict command exits with code 0.
 
-`reviewer_vle/ensemble_summary.csv` contains the five-model summary of vapor pressure and saturated liquid/vapor densities. `reviewer_vle/pvap_by_model.csv` contains the individual model states, solver statuses, and pressure in Pa. `reviewer_heat/thermodynamics_summary.csv` reports heat of vaporization in J/mol and kJ/mol. `reviewer_critical/critical_properties_summary.csv` reports the critical-property ensemble, while `critical_properties_by_model.csv` records each model's status. Critical-property search does not use the supplied temperature interval as its search bounds.
+`reviewer_vle/ensemble_summary.csv` contains the five-model summary of vapor pressure and saturated liquid/vapor densities. `reviewer_vle/pvap_by_model.csv` contains the individual model states, solver statuses, and pressure in Pa. `reviewer_heat/thermodynamics_summary.csv` reports heat of vaporization in J/mol and kJ/mol. `reviewer_caloric/thermodynamics_summary.csv` additionally reports the requested residual phase enthalpies and entropies and entropy of vaporization. `reviewer_critical/critical_properties_summary.csv` reports the critical-property ensemble, while `critical_properties_by_model.csv` records each model's status. Critical-property search does not use the supplied temperature interval as its search bounds.
 
-The default prediction requests the three saturation properties. Use `--properties` to select any combination of `vapor_pressure`, `liquid_density`, `vapor_density`, `heat_of_vaporization`, and `critical_properties`, separated by commas. Heat of vaporization internally solves saturated states. To process a CSV of SMILES and temperature ranges, run:
+The default prediction requests the three saturation properties. Use `--properties` to select any combination of `vapor_pressure`, `liquid_density`, `vapor_density`, `enthalpy`, `entropy`, `heat_of_vaporization`, `entropy_of_vaporization`, and `critical_properties`, separated by commas. The caloric properties internally solve saturated states. Phase enthalpy and entropy are residual values relative to an ideal gas at the same temperature and pressure. To process a CSV of SMILES and temperature ranges, run:
 
 ```text
 physaft-thermo batch --input examples/batch_input.csv --output reviewer_batch --strict

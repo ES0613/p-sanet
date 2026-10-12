@@ -2,7 +2,7 @@
 
 ## Intended use
 
-Five converted neural-network weights predict Gchg/RT for research-oriented pure-component PC-SAFT property inference. The release estimates saturation pressure and phase densities, heat of vaporization, and constructed critical properties per model with ensemble summaries. It does not provide a calibrated pressure error, confidence interval, or accuracy guarantee for a specific chemical family.
+Five converted neural-network weights predict Gchg/RT for research-oriented pure-component PC-SAFT property inference. The release estimates saturation pressure and phase densities, residual phase enthalpy and entropy, heat and entropy of vaporization, and constructed critical properties per model with ensemble summaries. It does not provide a calibrated pressure error, confidence interval, or accuracy guarantee for a specific chemical family.
 
 ## Inputs and assets
 

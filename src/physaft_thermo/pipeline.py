@@ -1,4 +1,4 @@
-"""Public API for selected saturation, vaporization, and critical properties."""
+"""Public API for selected saturation, caloric, and critical properties."""
 
 from __future__ import annotations
 
@@ -27,9 +27,16 @@ from .utils import runtime_metadata, write_json
 
 PROPERTIES = (
     "vapor_pressure", "liquid_density", "vapor_density",
-    "heat_of_vaporization", "critical_properties",
+    "enthalpy", "entropy", "heat_of_vaporization", "entropy_of_vaporization",
+    "critical_properties",
 )
 DEFAULT_PROPERTIES = ("vapor_pressure", "liquid_density", "vapor_density")
+CALORIC_VALUES = {
+    "enthalpy": ("Hres_liq_J_mol", "Hres_vap_J_mol"),
+    "entropy": ("Sres_liq_J_mol_K", "Sres_vap_J_mol_K"),
+    "heat_of_vaporization": ("Hvap_J_mol", "Hvap_kJ_mol"),
+    "entropy_of_vaporization": ("Svap_J_mol_K",),
+}
 CRITICAL_VALUES = ["Tc_K", "Pc_Pa", "Pc_kPa", "rho_c_mol_m3", "rho_c_kg_m3", "Zc", "critical_molar_volume_m3_mol"]
 CRITICAL_COLUMNS = ["model_id", *CRITICAL_VALUES, "status", "message", "is_approximate", "intersection_found"]
 
@@ -70,7 +77,7 @@ class PredictionResult:
                 return True
             if self.pvap_by_model.empty or not self.pvap_by_model["converged"].fillna(False).astype(bool).all():
                 return True
-        if stages["vaporization"]:
+        if stages.get("caloric", stages.get("vaporization", False)):
             if self.thermodynamics_by_model.empty or not self.thermodynamics_by_model["status"].eq("ok").all():
                 return True
         if stages["critical"]:
@@ -85,7 +92,7 @@ class PredictionResult:
         if self.metadata["stages"]["vle"]:
             for name in ("gchg_rt", "epsilon_fits", "pvap_by_model", "ensemble_summary"):
                 getattr(self, name).to_csv(output / f"{name}.csv", index=False)
-        if self.metadata["stages"]["vaporization"]:
+        if self.metadata["stages"].get("caloric", self.metadata["stages"].get("vaporization", False)):
             self.thermodynamics_by_model.to_csv(output / "thermodynamics_by_model.csv", index=False)
             self.thermodynamics_summary.to_csv(output / "thermodynamics_summary.csv", index=False)
         if self.metadata["stages"]["critical"]:
@@ -165,12 +172,13 @@ def _critical_run(geometry: GeometryResult, embedding: np.ndarray, selected_mode
 
 def predict(smiles: str, temperatures_k: object, models: Iterable[str] = DEFAULT_MODELS,
             device: str = "cpu", properties: Iterable[str] | None = None) -> PredictionResult:
-    """Predict selected properties; vaporization uses internally solved saturation states."""
+    """Predict selected properties; caloric outputs use solved saturation states."""
     requested = _normalize_properties(properties)
     selected_models = _normalize_models(models)
     temperatures = validate_temperatures(temperatures_k)
     need_vle = bool(set(requested) - {"critical_properties"})
-    need_vaporization = "heat_of_vaporization" in requested
+    caloric_columns = [column for prop in requested for column in CALORIC_VALUES.get(prop, ())]
+    need_caloric = bool(caloric_columns)
     need_critical = "critical_properties" in requested
     canonical = canonicalize_smiles(smiles)
     geometry = calculate_geometry(canonical)
@@ -198,7 +206,7 @@ def predict(smiles: str, temperatures_k: object, models: Iterable[str] = DEFAULT
                 if not any(row["model_id"] == model_id for row in epsilon_rows):
                     epsilon_rows.append({"model_id": model_id, "status": "failed", "message": str(exc)})
                 pvap_rows.extend(_failed_pvap_rows(model_id, temperatures, str(exc)))
-                if need_vaporization:
+                if need_caloric:
                     caloric_rows.extend({"model_id": model_id, "input_index": i, "T_K": float(t),
                                          "status": "epsilon_fit_failed", "message": str(exc)}
                                         for i, t in enumerate(temperatures))
@@ -223,7 +231,7 @@ def predict(smiles: str, temperatures_k: object, models: Iterable[str] = DEFAULT
                     row[f"rho_{phase}_mol_m3"] = rho
                     row[f"rho_{phase}_kg_m3"] = rho * mass / 1000.0
                 model_rows[int(index)] = row
-                if need_vaporization:
+                if need_caloric:
                     caloric = {"model_id": model_id, "input_index": int(index), "T_K": temperature,
                                "P_Pa": solved.pressure_pa, "status": "vle_failed", "message": solved.message}
                     if solved.converged:
@@ -231,11 +239,11 @@ def predict(smiles: str, temperatures_k: object, models: Iterable[str] = DEFAULT
                             values = saturation_caloric_properties(temperature, solved.eta_liq, solved.eta_vap,
                                 geometry.pcsaft_m, geometry.pcsaft_sigma_a, tuple(fit.coefficients),
                                 float(temperatures.min()), float(temperatures.max()))
-                            caloric.update({name: values[name] for name in ("Hvap_J_mol", "Hvap_kJ_mol",
+                            caloric.update({name: values[name] for name in (*caloric_columns,
                                 "thermo_identity_abs_J_mol_K", "epsilon_derivative", "epsilon_region")})
                             caloric.update(status="ok", message="")
                         except Exception as exc:
-                            caloric.update(status="vaporization_failed", message=str(exc))
+                            caloric.update(status="caloric_failed", message=str(exc))
                     caloric_rows.append(caloric)
             pvap_rows.extend(model_rows[i] for i in range(len(temperatures)))
     gchg_frame = pd.DataFrame(gchg_rows, columns=["model_id", "input_index", "T_K", "Gchg_over_RT", "canonical_nonisomeric_smiles"])
@@ -244,7 +252,7 @@ def predict(smiles: str, temperatures_k: object, models: Iterable[str] = DEFAULT
     summary = _ensemble_summary(pvap_frame, temperatures) if need_vle else pd.DataFrame(columns=["input_index", "T_K", "successful_model_count"])
     critical = _critical_run(geometry, embedding, selected_models, device, loaded_models) if need_critical else CriticalRun(
         pd.DataFrame(columns=CRITICAL_COLUMNS), *[pd.DataFrame() for _ in range(4)])
-    caloric_frame = pd.DataFrame(caloric_rows, columns=["model_id", "input_index", "T_K", "P_Pa", "Hvap_J_mol", "Hvap_kJ_mol",
+    caloric_frame = pd.DataFrame(caloric_rows, columns=["model_id", "input_index", "T_K", "P_Pa", *caloric_columns,
         "thermo_identity_abs_J_mol_K", "epsilon_derivative", "epsilon_region", "status", "message"])
     if not caloric_frame.empty:
         caloric_frame = caloric_frame.sort_values(["model_id", "input_index"]).reset_index(drop=True)
@@ -255,17 +263,20 @@ def predict(smiles: str, temperatures_k: object, models: Iterable[str] = DEFAULT
                   "canonical_nonisomeric_smiles": canonical.embedding_smiles,
                   "temperatures_k": temperatures.tolist(), "models": list(selected_models), "device": device,
                   "properties": list(requested)},
-        "stages": {"vle": need_vle, "vaporization": need_vaporization, "critical": need_critical},
+        "stages": {"vle": need_vle, "caloric": need_caloric,
+                   "vaporization": "heat_of_vaporization" in requested, "critical": need_critical},
         "runtime": runtime_metadata(), "model_manifest": load_manifest(),
         "smi_ted": {"asset_location": "SMI_TED_HOME or the documented default user cache", "verified_sha256": smi_ted_hashes},
-        "thermodynamics": {"vaporization_definition": "Difference of residual enthalpies at coexistence",
+        "thermodynamics": {"reported_caloric_columns": caloric_columns,
+                           "enthalpy_entropy_definition": "Residual properties relative to the ideal gas at the same T and P",
+                           "vaporization_definition": "Difference of residual enthalpies at coexistence",
                            "derivative": "analytic fixed-number-density Helmholtz derivative including epsilon(T) chain rule",
                            "molar_mass_g_mol": mass},
         "critical": {"search_T_min_K": 11.5002, "search_T_max_K": 3728.0,
                      "closest_point_is_approximate": True, "diagnostic_plot": "critical_gchg_diagnostics.svg"},
         "experimental_data_used_at_inference": False}
     return PredictionResult(geometry, gchg_frame, epsilon_frame, pvap_frame, summary, metadata,
-        caloric_frame, property_summary(caloric_frame, ["input_index", "T_K"], ["Hvap_J_mol", "Hvap_kJ_mol"]),
+        caloric_frame, property_summary(caloric_frame, ["input_index", "T_K"], caloric_columns),
         critical.properties, property_summary(critical.properties, [], CRITICAL_VALUES),
         critical.curves, critical.candidates, critical.vle_validation, critical.branch_choices)
 
