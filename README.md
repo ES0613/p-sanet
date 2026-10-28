@@ -1,15 +1,17 @@
-# PhySAFT: Physics-Guided Molecular Thermodynamics
+# P-SANET: A physics-guided PC-SAFT neural network for molecular thermodynamic property prediction
 
-**PhySAFT Thermo** is the public, runnable example of the pure-component thermodynamic framework accompanying **Physics-Guided Learning for Reliable Molecular Thermodynamics Beyond Observed Chemical Space** by **Yi-Cheng Shen, Shu Wang, and Shiang-Tai Lin**. From a SMILES string and temperatures, it predicts vapor pressure, saturated liquid and vapor densities, residual enthalpy and entropy, heat and entropy of vaporization, and critical properties using five neural-network models and PC-SAFT.
+**P-SANET** is the public, runnable example of the pure-component thermodynamic framework accompanying **Physics-Guided Learning with Calibrated Uncertainty for Molecular Thermodynamics Beyond Observed Chemical Space** by **Yi-Cheng Shen, Shu Wang, and Shiang-Tai Lin**. From a SMILES string and temperatures, it predicts vapor pressure, saturated liquid and vapor densities, residual enthalpy and entropy, heat and entropy of vaporization, and critical properties using five neural-network models and PC-SAFT.
 
 The paper has two companion repositories with the same underlying physics-guided architecture:
 
 | Repository | Model training source | Distribution |
 | --- | --- | --- |
-| **`physaft-thermo`** (this repository) | Quantities derived from publicly available PCP-SAFT pure-substance parameters | Public inference code and five trained model weights |
-| **`pcsaft-ml-pvap`** | NIST ThermoData Engine (TDE) data | Restricted to authorized collaborators; its NIST-trained weights and calibration assets are not distributed here |
+| **[`p-sanet`](https://github.com/ES0613/p-sanet)** (this repository) | Quantities derived from publicly available PCP-SAFT pure-substance parameters | Public inference code and five trained model weights |
+| **`p-sanet-licensed`** | Aspen Plus (version 11.0) data, used with permission | Restricted to authorized collaborators; its licensed-data weights and calibration assets are not distributed here |
 
-The authors do not publicly release the NIST TDE-trained models because of the applicable data-use restrictions. This repository lets readers run the proposed inference architecture using models trained from published parameter data. The authors expect that researchers using their own appropriately licensed databases can train models with potentially comparable performance, subject to data quality, coverage, and independent validation. The package includes inference code and converted weights, not the training tables or a complete retraining pipeline.
+The GitHub repository, installed package, Conda environment, and command-line tool are named `p-sanet`. The Python import name is `p_sanet`.
+
+The models trained using Aspen Plus (version 11.0) data accessed with permission are shared only with authorized collaborators. This public repository lets readers run the proposed inference architecture using models trained from published parameter data. The authors expect that researchers using their own appropriately licensed databases can train models with potentially comparable performance, subject to data quality, coverage, and independent validation. The package includes inference code and converted weights, not the training tables or a complete retraining pipeline.
 
 ## Workflow
 
@@ -21,7 +23,7 @@ SMILES -> 100-conformer RDKit geometry + SMI-TED-Light embedding
        -> per-model results and five-model summaries
 ```
 
-Each model has its own predicted Gchg/RT curve and thermodynamic calculation. The five-model spread is an uncalibrated description of model disagreement, not a pressure-error estimate or prediction interval. This repository does not include the restricted release's calibrated vapor-pressure error bands or its Aspen/TDE Wagner comparison workflow.
+Each model has its own predicted Gchg/RT curve and thermodynamic calculation. The five-model spread is an uncalibrated description of model disagreement, not a pressure-error estimate or prediction interval. This repository does not include the restricted release's calibrated vapor-pressure error bands or its Aspen Plus (version 11.0) Wagner comparison workflow.
 
 ## Reviewer quick start
 
@@ -31,11 +33,11 @@ For step-by-step setup on Ubuntu x86-64, macOS Apple Silicon, Windows x86-64, or
 
 ```bash
 conda env create -f environment.yml
-conda activate physaft-thermo
+conda activate p-sanet
 python tools/install_fast_transformers.py
 python -m pip install --no-deps -e .
-physaft-thermo download-smi-ted
-physaft-thermo predict --smiles 'CCO' --t-min 280 --t-max 320 --n-points 5 --output example_output --strict
+p-sanet download-smi-ted
+p-sanet predict --smiles 'CCO' --t-min 280 --t-max 320 --n-points 5 --output example_output --strict
 ```
 
 The SMI-TED-Light checkpoint, loader, and vocabulary come from a pinned IBM Research revision and are hash-verified before use; they are not redistributed in this repository. `tools/install_fast_transformers.py` verifies the official source distribution of the legacy attention dependency after PyTorch has been installed. Linux builds its native extension. macOS installs only the pure-Python attention modules used by SMI-TED-Light, so no Homebrew compiler setup is needed. The checked Linux image is x86-64; other compatible Linux distributions may use the Conda recipe or Docker. Linux ARM64 is not part of the validated platform matrix. CPU-only, headless Linux hosts are supported.
@@ -49,8 +51,8 @@ Use the **x86-64 build of Python 3.11** on both hosts. Windows 11 ARM64 runs thi
 .\.venv\Scripts\Activate.ps1
 python tools\windows_preflight.py
 python tools\install_windows.py
-physaft-thermo download-smi-ted
-physaft-thermo --help
+p-sanet download-smi-ted
+p-sanet --help
 ```
 
 The preflight must report `sysconfig_platform: win-amd64`. On an ARM64 computer, use the full x64 Python path when creating the environment. The Windows installer installs the pinned runtime and the same verified pure-Python SMI-TED attention subset used on macOS.
@@ -70,7 +72,7 @@ The default prediction calculates vapor pressure and both saturated phase densit
 | `critical_properties` | Per-model Tc, Pc, critical density, Zc, and molar volume |
 
 ```bash
-physaft-thermo predict --smiles 'CCCCC' --t-min 280 --t-max 350 --n-points 5 \
+p-sanet predict --smiles 'CCCCC' --t-min 280 --t-max 350 --n-points 5 \
   --properties vapor_pressure,liquid_density,vapor_density,enthalpy,entropy,heat_of_vaporization,entropy_of_vaporization,critical_properties \
   --output thermodynamic_output --strict
 ```
@@ -80,7 +82,7 @@ Caloric properties reuse internally solved saturation states. `enthalpy` and `en
 ## Python API and batch CLI
 
 ```python
-from physaft_thermo import predict, predict_range
+from p_sanet import predict, predict_range
 
 result = predict_range("CCO", 280.0, 320.0, n_points=5)
 result.write("example_output")
@@ -96,7 +98,7 @@ print(critical.critical_properties_by_model)
 ```
 
 ```bash
-physaft-thermo batch --input examples/batch_input.csv --output batch_output --strict
+p-sanet batch --input examples/batch_input.csv --output batch_output --strict
 ```
 
 The batch CSV needs `smiles`, `t_min_k`, and `t_max_k`; `n_points` is optional. Inputs must be single-fragment molecules with at least five distinct, finite, positive temperatures. Normal mode records partial results with explicit statuses. The same `--properties` choice works with `batch`.
@@ -122,17 +124,17 @@ The implementation details are described in [METHODS](docs/METHODS.md), [MODEL_C
 ```bash
 python -m pytest -q
 python tools/release_audit.py .
-physaft-thermo --help
+p-sanet --help
 ```
 
 The full end-to-end test additionally requires verified SMI-TED-Light assets:
 
 ```bash
-physaft-thermo download-smi-ted
+p-sanet download-smi-ted
 python -m pytest -q -m integration
 ```
 
-The GitHub Actions matrix checks Ubuntu x86-64, macOS ARM64, Windows x86-64, and Windows 11 ARM64 with x64 Python. The separate full-integration workflow exercises actual SMI-TED-Light inference. A Linux x86-64 CPU Docker image can be built with `docker build -t physaft-thermo .`. Dependency versions and model-asset hashes are documented in [REPRODUCIBILITY](docs/REPRODUCIBILITY.md).
+The GitHub Actions matrix checks Ubuntu x86-64, macOS ARM64, Windows x86-64, and Windows 11 ARM64 with x64 Python. The separate full-integration workflow exercises actual SMI-TED-Light inference. A Linux x86-64 CPU Docker image can be built with `docker build -t p-sanet .`. Dependency versions and model-asset hashes are documented in [REPRODUCIBILITY](docs/REPRODUCIBILITY.md).
 
 ## Scope and limitations
 
@@ -141,12 +143,12 @@ The GitHub Actions matrix checks Ubuntu x86-64, macOS ARM64, Windows x86-64, and
 - Inference uses exactly 100 RDKit conformers and can take longer than descriptor-only prediction.
 - Critical results marked `closest_point_no_intersection` are approximate; solver and validation failures remain explicit.
 - Five-model standard deviations describe disagreement among these public weights. They are not calibrated uncertainty intervals or substitutes for validation against an independent reference dataset.
-- This release supplies no training records, retraining scripts, NIST TDE-trained weights, calibration model, or Wagner reference coefficients.
+- This release supplies no training records, retraining scripts, weights trained using Aspen Plus (version 11.0) data, calibration model, or Wagner reference coefficients.
 
 ## Citation and availability
 
-The research framework is described in **Physics-Guided Learning for Reliable Molecular Thermodynamics Beyond Observed Chemical Space** by **Yi-Cheng Shen, Shu Wang, and Shiang-Tai Lin**. Cite the paper when its formal citation becomes available. For this software release, use [CITATION.cff](CITATION.cff).
+The research framework is described in **Physics-Guided Learning with Calibrated Uncertainty for Molecular Thermodynamics Beyond Observed Chemical Space** by **Yi-Cheng Shen, Shu Wang, and Shiang-Tai Lin**. Cite the paper when its formal citation becomes available. For this software release, use [CITATION.cff](CITATION.cff).
 
-The public weights were trained from quantities derived from the published PCP-SAFT parameter source: *PCP-SAFT Parameters of Pure Substances Using Large Experimental Databases*, [DOI: 10.1021/acs.iecr.3c02255](https://doi.org/10.1021/acs.iecr.3c02255). See [DATA_AVAILABILITY](docs/DATA_AVAILABILITY.md) for provenance and distribution scope. The separate NIST TDE-trained companion repository is available only to authorized collaborators.
+The public weights were trained from quantities derived from the published PCP-SAFT parameter source: *PCP-SAFT Parameters of Pure Substances Using Large Experimental Databases*, [DOI: 10.1021/acs.iecr.3c02255](https://doi.org/10.1021/acs.iecr.3c02255). See [DATA_AVAILABILITY](docs/DATA_AVAILABILITY.md) for provenance and distribution scope. The separate companion repository using Aspen Plus (version 11.0) data with permission is available only to authorized collaborators.
 
 Copyright (c) 2026 Yi-Cheng Shen and Shiang-Tai Lin. The code and converted inference assets are released under [BSD-3-Clause](LICENSE). SMI-TED-Light is fetched from IBM Research and is not redistributed here; see [THIRD_PARTY_NOTICES](docs/THIRD_PARTY_NOTICES.md).

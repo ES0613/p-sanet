@@ -1,8 +1,9 @@
 cff-version: 1.2.0
-message: "If you use this software, cite the associated PhySAFT paper when available, this repository, and the source-parameter publication."
-title: "PhySAFT Thermo: pure-component PC-SAFT property inference"
+message: "If you use this software, cite Physics-Guided Learning with Calibrated Uncertainty for Molecular Thermodynamics Beyond Observed Chemical Space when available, this repository, and the source-parameter publication."
+title: "P-SANET: A physics-guided PC-SAFT neural network for molecular thermodynamic property prediction"
 type: software
 version: 1.1.0
+repository-code: "https://github.com/ES0613/p-sanet"
 authors:
   - family-names: "Shen"
     given-names: "Yi-Cheng"
@@ -16,7 +17,7 @@ authors:
     affiliation: "Department of Chemical Engineering, National Taiwan University, Taipei 106319, Taiwan"
 license: BSD-3-Clause
 keywords:
-  - PhySAFT
+  - P-SANET
   - PC-SAFT
   - vapor pressure
   - heat of vaporization

@@ -1,4 +1,4 @@
-# PhySAFT Thermo model card
+# P-SANET model card
 
 ## Intended use
 

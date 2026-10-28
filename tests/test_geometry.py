@@ -2,8 +2,8 @@ import math
 
 import pytest
 
-from physaft_thermo.geometry import calculate_geometry
-from physaft_thermo.smiles import canonicalize_smiles
+from p_sanet.geometry import calculate_geometry
+from p_sanet.smiles import canonicalize_smiles
 
 
 def test_100_conformer_geometry_matches_public_fixture() -> None:

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-FRAMEWORK_NAME = "PhySAFT Thermo"
+FRAMEWORK_NAME = "P-SANET"
 DEFAULT_MODELS = ("model_1", "model_2", "model_3", "model_4", "model_5")
 
 N_CONFORMERS = 100

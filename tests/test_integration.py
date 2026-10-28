@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from physaft_thermo import predict, predict_range
+from p_sanet import predict, predict_range
 
 
 @pytest.mark.integration

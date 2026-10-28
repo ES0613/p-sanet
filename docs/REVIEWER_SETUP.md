@@ -1,6 +1,6 @@
 # Reviewer setup: from a new computer to PC-SAFT predictions
 
-This guide runs the public PhySAFT Thermo inference release on a CPU. It uses Python 3.11, the five bundled model weights, and separately downloaded, SHA-256-verified SMI-TED-Light assets. No training data, GPU, or Aspen installation is required.
+This guide runs the public P-SANET inference release on a CPU. It uses Python 3.11, the five bundled model weights, and separately downloaded, SHA-256-verified SMI-TED-Light assets. No training data, GPU, or Aspen Plus installation is required.
 
 | Computer | Python process | Section |
 | --- | --- | --- |
@@ -13,7 +13,7 @@ These are the platforms covered by the project CI. Other x86-64 Linux distributi
 
 ## Before installation
 
-The repository is [ES0613/physaft-thermo](https://github.com/ES0613/physaft-thermo). If access is restricted, accept the GitHub invitation before cloning. Alternatively, sign in on the repository page, choose **Code > Download ZIP**, extract it, and use the extracted directory in place of the `git clone` steps below. Run project commands from the directory containing `pyproject.toml`, `requirements-lock.txt`, `tools/`, and `examples/`. A clone has no extra publishing subdirectory.
+The public repository is [ES0613/p-sanet](https://github.com/ES0613/p-sanet). Alternatively, choose **Code > Download ZIP** on the repository page, extract it, and use the extracted directory in place of the `git clone` steps below. Run project commands from the directory containing `pyproject.toml`, `requirements-lock.txt`, `tools/`, and `examples/`. A clone has no extra publishing subdirectory. The package and CLI are named `p-sanet`; Python imports use `p_sanet`.
 
 ## A. Ubuntu x86-64
 
@@ -37,10 +37,10 @@ source "$HOME/miniforge3/etc/profile.d/conda.sh"
 Do not run the installer over an existing `~/miniforge3`; source that installation's `conda.sh` instead. Create the environment and install the repository:
 
 ```bash
-conda create -n physaft-thermo --platform linux-64 --override-channels -c conda-forge python=3.11.15 pip -y
-conda activate physaft-thermo
-git clone https://github.com/ES0613/physaft-thermo.git
-cd physaft-thermo
+conda create -n p-sanet --platform linux-64 --override-channels -c conda-forge python=3.11.15 pip -y
+conda activate p-sanet
+git clone https://github.com/ES0613/p-sanet.git
+cd p-sanet
 python -m pip install --upgrade pip==25.0.1
 python -m pip install -r requirements-lock.txt
 python tools/install_fast_transformers.py
@@ -70,11 +70,11 @@ source "$HOME/miniforge3/etc/profile.d/conda.sh"
 Use the existing Conda installation if `~/miniforge3` already exists. Then:
 
 ```bash
-conda create -n physaft-thermo --platform osx-arm64 --override-channels -c conda-forge python=3.11.15 pip -y
-conda activate physaft-thermo
+conda create -n p-sanet --platform osx-arm64 --override-channels -c conda-forge python=3.11.15 pip -y
+conda activate p-sanet
 python -c "import platform; assert platform.machine() == 'arm64'"
-git clone https://github.com/ES0613/physaft-thermo.git
-cd physaft-thermo
+git clone https://github.com/ES0613/p-sanet.git
+cd p-sanet
 python -m pip install --upgrade pip==25.0.1
 python -m pip install -r requirements-lock.txt
 python tools/install_fast_transformers.py
@@ -88,12 +88,12 @@ The installer verifies the upstream fast-transformers archive and installs the p
 Use **Miniforge Prompt (CMD)**. Install the [Windows x86-64 Miniforge release](https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Windows-x86_64.exe) first, then create an x64 environment:
 
 ```bat
-conda create -n physaft-thermo --platform win-64 --override-channels -c conda-forge python=3.11.15 pip git -y
-conda activate physaft-thermo
+conda create -n p-sanet --platform win-64 --override-channels -c conda-forge python=3.11.15 pip git -y
+conda activate p-sanet
 python -c "import sysconfig; assert sysconfig.get_platform() == 'win-amd64'"
 cd /d "%USERPROFILE%"
-git clone https://github.com/ES0613/physaft-thermo.git
-cd physaft-thermo
+git clone https://github.com/ES0613/p-sanet.git
+cd p-sanet
 python tools\windows_preflight.py
 python tools\install_windows.py
 ```
@@ -105,12 +105,12 @@ The installer installs the pinned runtime, the verified pure-Python attention de
 Install the **same Windows x86-64 Miniforge release** linked in section C. Run the x64 Miniforge Prompt so the entire Python environment uses Windows x64 emulation:
 
 ```bat
-conda create -n physaft-thermo --platform win-64 --override-channels -c conda-forge python=3.11.15 pip git -y
-conda activate physaft-thermo
+conda create -n p-sanet --platform win-64 --override-channels -c conda-forge python=3.11.15 pip git -y
+conda activate p-sanet
 python -c "import sysconfig; assert sysconfig.get_platform() == 'win-amd64'"
 cd /d "%USERPROFILE%"
-git clone https://github.com/ES0613/physaft-thermo.git
-cd physaft-thermo
+git clone https://github.com/ES0613/p-sanet.git
+cd p-sanet
 python tools\windows_preflight.py
 python tools\install_windows.py
 ```
@@ -123,35 +123,35 @@ Stay in the repository root with the environment activated. These commands work 
 
 ```text
 python --version
-physaft-thermo download-smi-ted
-physaft-thermo --help
-physaft-thermo predict --smiles CCO --t-min 280 --t-max 320 --n-points 5 --output reviewer_vle --strict
-physaft-thermo predict --smiles CCO --t-min 280 --t-max 320 --n-points 5 --properties heat_of_vaporization --output reviewer_heat --strict
-physaft-thermo predict --smiles CCO --t-min 280 --t-max 320 --n-points 5 --properties enthalpy,entropy,heat_of_vaporization,entropy_of_vaporization --output reviewer_caloric --strict
-physaft-thermo predict --smiles CCO --t-min 280 --t-max 320 --n-points 5 --properties critical_properties --output reviewer_critical --strict
+p-sanet download-smi-ted
+p-sanet --help
+p-sanet predict --smiles CCO --t-min 280 --t-max 320 --n-points 5 --output reviewer_vle --strict
+p-sanet predict --smiles CCO --t-min 280 --t-max 320 --n-points 5 --properties heat_of_vaporization --output reviewer_heat --strict
+p-sanet predict --smiles CCO --t-min 280 --t-max 320 --n-points 5 --properties enthalpy,entropy,heat_of_vaporization,entropy_of_vaporization --output reviewer_caloric --strict
+p-sanet predict --smiles CCO --t-min 280 --t-max 320 --n-points 5 --properties critical_properties --output reviewer_critical --strict
 ```
 
-The download verifies the loader, vocabulary, and checkpoint hashes. By default, it installs them under the current user's `~/.cache/physaft_thermo/smi_ted_light` directory (the corresponding user-profile location on Windows). Subsequent predictions reuse these assets. A successful strict command exits with code 0.
+The download verifies the loader, vocabulary, and checkpoint hashes. By default, it installs them under the current user's `~/.cache/p_sanet/smi_ted_light` directory (the corresponding user-profile location on Windows). Subsequent predictions reuse these assets. A successful strict command exits with code 0.
 
 `reviewer_vle/ensemble_summary.csv` contains the five-model summary of vapor pressure and saturated liquid/vapor densities. `reviewer_vle/pvap_by_model.csv` contains the individual model states, solver statuses, and pressure in Pa. `reviewer_heat/thermodynamics_summary.csv` reports heat of vaporization in J/mol and kJ/mol. `reviewer_caloric/thermodynamics_summary.csv` additionally reports the requested residual phase enthalpies and entropies and entropy of vaporization. `reviewer_critical/critical_properties_summary.csv` reports the critical-property ensemble, while `critical_properties_by_model.csv` records each model's status. Critical-property search does not use the supplied temperature interval as its search bounds.
 
 The default prediction requests the three saturation properties. Use `--properties` to select any combination of `vapor_pressure`, `liquid_density`, `vapor_density`, `enthalpy`, `entropy`, `heat_of_vaporization`, `entropy_of_vaporization`, and `critical_properties`, separated by commas. The caloric properties internally solve saturated states. Phase enthalpy and entropy are residual values relative to an ideal gas at the same temperature and pressure. To process a CSV of SMILES and temperature ranges, run:
 
 ```text
-physaft-thermo batch --input examples/batch_input.csv --output reviewer_batch --strict
+p-sanet batch --input examples/batch_input.csv --output reviewer_batch --strict
 ```
 
 The package does not include a Wagner comparison command, experimental correlation coefficients, or calibrated vapor-pressure error bands. The reported five-model spread describes disagreement among the models; it is not a prediction interval. Review [METHODS.md](METHODS.md), [MODEL_CARD.md](MODEL_CARD.md), and [DATA_AVAILABILITY.md](DATA_AVAILABILITY.md) before interpreting results.
 
 ## Later sessions and common issues
 
-Reopen a terminal, activate the same `physaft-thermo` Conda environment, and enter the cloned repository. On Ubuntu/macOS, source the Conda initialization script first if `conda` is unavailable. On Windows, use Miniforge Prompt.
+Reopen a terminal, activate the same `p-sanet` Conda environment, and enter the cloned repository. On Ubuntu/macOS, source the Conda initialization script first if `conda` is unavailable. On Windows, use Miniforge Prompt.
 
 | Symptom | Check |
 | --- | --- |
-| GitHub clone reports “repository not found” | Confirm access to the repository or use the authenticated browser's Download ZIP option. |
-| `physaft-thermo` command is missing | Activate the project environment and repeat the package installation step from the repository root. |
-| SMI-TED files are missing or fail hash verification | Rerun `physaft-thermo download-smi-ted`; verify the network connection and available disk space. |
+| GitHub clone reports “repository not found” | Check the `ES0613/p-sanet` URL or use the repository page's Download ZIP option. |
+| `p-sanet` command is missing | Activate the project environment and repeat the package installation step from the repository root. |
+| SMI-TED files are missing or fail hash verification | Rerun `p-sanet download-smi-ted`; verify the network connection and available disk space. |
 | Windows preflight reports `win-arm64` | Create a `win-64` Conda environment from x64 Miniforge as shown above. |
 | `--strict` exits with code 2 | Inspect each output CSV's `status` and `message` columns; one or more requested model states failed. |
 

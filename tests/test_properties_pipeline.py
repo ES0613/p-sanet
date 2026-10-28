@@ -6,9 +6,9 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from physaft_thermo import pipeline
-from physaft_thermo.cli import main
-from physaft_thermo.critical_properties import CriticalRun
+from p_sanet import pipeline
+from p_sanet.cli import main
+from p_sanet.critical_properties import CriticalRun
 
 
 @pytest.fixture

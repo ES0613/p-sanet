@@ -188,7 +188,7 @@ def install(source_archive: Path | None = None, python_only: bool | None = None)
         from windows_preflight import require_supported_windows_python
 
         require_supported_windows_python()
-    with tempfile.TemporaryDirectory(prefix="physaft-fast-transformers-") as temporary:
+    with tempfile.TemporaryDirectory(prefix="p-sanet-fast-transformers-") as temporary:
         work = Path(temporary)
         archive = work / SOURCE_FILENAME
         if source_archive is None:

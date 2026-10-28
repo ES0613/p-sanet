@@ -5,9 +5,9 @@ import math
 import numpy as np
 import pytest
 
-from physaft_thermo.pcsaft import Component, EOS, make_eos
-from physaft_thermo.solver import solve_vapor_pressure
-from physaft_thermo.thermodynamics import molar_density, residual_properties, saturation_caloric_properties
+from p_sanet.pcsaft import Component, EOS, make_eos
+from p_sanet.solver import solve_vapor_pressure
+from p_sanet.thermodynamics import molar_density, residual_properties, saturation_caloric_properties
 
 
 COEFFICIENTS = (250.0, 500.0, 0.01)

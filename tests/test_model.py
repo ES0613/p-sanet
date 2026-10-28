@@ -1,7 +1,7 @@
 import numpy as np
 
-from physaft_thermo.constants import DEFAULT_MODELS
-from physaft_thermo.model import load_manifest, load_model, predict_gchg_rt
+from p_sanet.constants import DEFAULT_MODELS
+from p_sanet.model import load_manifest, load_model, predict_gchg_rt
 
 
 def test_manifest_and_all_model_hashes_load() -> None:

@@ -3,17 +3,18 @@ requires = ["setuptools==75.8.0", "wheel==0.45.1"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "physaft-thermo"
+name = "p-sanet"
 version = "1.1.0"
-description = "Five-model PC-SAFT pure-component property inference"
+description = "A physics-guided PC-SAFT neural network for molecular thermodynamic property prediction"
 readme = "README.md"
 requires-python = ">=3.11,<3.12"
 license = {file = "LICENSE"}
 authors = [
   {name = "Yi-Cheng Shen"},
+  {name = "Shu Wang"},
   {name = "Shiang-Tai Lin", email = "stlin@ntu.edu.tw"},
 ]
-keywords = ["PhySAFT", "PC-SAFT", "vapor pressure", "heat of vaporization", "critical properties", "machine learning", "cheminformatics"]
+keywords = ["P-SANET", "PC-SAFT", "vapor pressure", "heat of vaporization", "critical properties", "machine learning", "cheminformatics"]
 classifiers = [
   "Development Status :: 4 - Beta",
   "Intended Audience :: Science/Research",
@@ -36,7 +37,7 @@ smi-ted = ["pytorch-fast-transformers==0.4.0; sys_platform == 'linux'"]
 test = ["pytest==8.3.5", "pytest-cov==6.0.0"]
 
 [project.scripts]
-physaft-thermo = "physaft_thermo.cli:main"
+p-sanet = "p_sanet.cli:main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
@@ -45,7 +46,7 @@ package-dir = {"" = "src"}
 where = ["src"]
 
 [tool.setuptools.package-data]
-physaft_thermo = ["models/*.json", "models/*.safetensors"]
+p_sanet = ["models/*.json", "models/*.safetensors"]
 
 [tool.pytest.ini_options]
 addopts = "-ra"

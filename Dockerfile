@@ -20,5 +20,5 @@ RUN python -m pip install --upgrade pip==25.0.1 \
     && python tools/install_fast_transformers.py \
     && python -m pip install --no-deps .
 
-ENTRYPOINT ["physaft-thermo"]
+ENTRYPOINT ["p-sanet"]
 CMD ["--help"]

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Validate the supported Python process architecture on Windows.
 
-PhySAFT uses binary wheels pinned for Windows x86-64. Windows 11 ARM64 hosts
+P-SANET uses binary wheels pinned for Windows x86-64. Windows 11 ARM64 hosts
 are supported through the operating system's x64 emulation, which requires an
 x64 Python process. Native ``win-arm64`` Python cannot load ``win-amd64``
 PyTorch and RDKit wheels.
@@ -49,7 +49,7 @@ def validate_windows_runtime(
         )
     if major_minor != SUPPORTED_PYTHON:
         raise WindowsPlatformError(
-            "PhySAFT requires the x86-64 build of Python 3.11 on Windows. "
+            "P-SANET requires the x86-64 build of Python 3.11 on Windows. "
             f"Observed Python {major_minor[0]}.{major_minor[1]}."
         )
     if normalized_tag == "win-arm64":
@@ -57,12 +57,12 @@ def validate_windows_runtime(
             "Native Windows ARM64 Python is not supported in this release because "
             "the pinned PyTorch 2.5.1 and RDKit 2025.09.6 stack does not provide "
             "a complete win-arm64 wheel set. On a Windows 11 ARM64 computer, "
-            "install the x86-64 build of Python 3.11 and run PhySAFT through "
+            "install the x86-64 build of Python 3.11 and run P-SANET through "
             "Windows x64 emulation."
         )
     if normalized_tag != SUPPORTED_WINDOWS_PLATFORM or pointer_bits != 64:
         raise WindowsPlatformError(
-            "PhySAFT requires a 64-bit x86-64 Python process on Windows. "
+            "P-SANET requires a 64-bit x86-64 Python process on Windows. "
             f"Observed sysconfig platform {platform_tag!r} and {pointer_bits}-bit pointers."
         )
     return "windows-x64-native-or-emulated"

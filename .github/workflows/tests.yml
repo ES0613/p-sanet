@@ -71,6 +71,6 @@ jobs:
         run: python tools/release_audit.py .
       - name: CLI smoke test
         run: |
-          physaft-thermo --help
-          physaft-thermo predict --help
-          physaft-thermo batch --help
+          p-sanet --help
+          p-sanet predict --help
+          p-sanet batch --help

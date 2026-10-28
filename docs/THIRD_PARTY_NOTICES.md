@@ -10,7 +10,7 @@ SMI-TED-Light is retrieved from the official IBM Research Hugging Face repositor
 - Upstream license displayed by the repository: Apache-2.0
 - `smi-ted-Light_40.pt` SHA-256: `baf252dbc081a00c68d2fd6ed8b08a0db0fa15244cfea442d49f0619a3a65375`
 
-The download command also verifies the pinned loader and vocabulary hashes recorded in `physaft_thermo.constants`. Users should review the upstream license and model documentation.
+The download command also verifies the pinned loader and vocabulary hashes recorded in `p_sanet.constants`. Users should review the upstream license and model documentation.
 
 ## PyTorch Fast Transformers
 

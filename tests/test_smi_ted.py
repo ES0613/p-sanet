@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from physaft_thermo.constants import SMI_TED_FILES, SMI_TED_REMOTE_PATHS, SMI_TED_REVISION
-from physaft_thermo.smi_ted import download_smi_ted
+from p_sanet.constants import SMI_TED_FILES, SMI_TED_REMOTE_PATHS, SMI_TED_REVISION
+from p_sanet.smi_ted import download_smi_ted
 
 
 def test_download_uses_pinned_remote_paths(tmp_path: Path, monkeypatch) -> None:
@@ -17,10 +17,10 @@ def test_download_uses_pinned_remote_paths(tmp_path: Path, monkeypatch) -> None:
         return SMI_TED_FILES[filename]
 
     monkeypatch.setattr(
-        "physaft_thermo.smi_ted.urllib.request.urlretrieve",
+        "p_sanet.smi_ted.urllib.request.urlretrieve",
         fake_urlretrieve,
     )
-    monkeypatch.setattr("physaft_thermo.smi_ted.sha256_file", fake_sha256)
+    monkeypatch.setattr("p_sanet.smi_ted.sha256_file", fake_sha256)
 
     destination = download_smi_ted(tmp_path)
 

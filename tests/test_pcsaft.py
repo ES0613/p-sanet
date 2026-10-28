@@ -2,8 +2,8 @@ import math
 
 import pytest
 
-from physaft_thermo.pcsaft import gchg_over_rt
-from physaft_thermo.solver import solve_vapor_pressure
+from p_sanet.pcsaft import gchg_over_rt
+from p_sanet.solver import solve_vapor_pressure
 
 
 @pytest.mark.parametrize(

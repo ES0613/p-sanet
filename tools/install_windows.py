@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Install the pinned PhySAFT runtime on supported Windows Python.
+"""Install the pinned P-SANET runtime on supported Windows Python.
 
 Both native Windows x86-64 computers and Windows 11 ARM64 computers using x64
 emulation run the same ``win-amd64`` Python 3.11 dependency stack. Native
@@ -90,7 +90,7 @@ def install(source_archive: Path | None = None) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
-            "Install PhySAFT for Windows x86-64, including Windows 11 ARM64 "
+            "Install P-SANET for Windows x86-64, including Windows 11 ARM64 "
             "computers running x64 Python through operating-system emulation."
         )
     )
@@ -122,7 +122,7 @@ def main() -> int:
     print(
         "Windows platform preflight passed."
         if args.check_only
-        else "PhySAFT Windows installation completed."
+        else "P-SANET Windows installation completed."
     )
     return 0
 
